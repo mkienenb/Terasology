@@ -39,7 +39,7 @@ public class CounterNode extends DecoratorNode {
     }
 
     @Override
-    public CounterTask create() {
+    public CounterTask createTask() {
         return new CounterTask(this);
     }
 

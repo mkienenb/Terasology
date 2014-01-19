@@ -26,7 +26,7 @@ import java.util.List;
  * @author synopia
  */
 @API
-public abstract class CompositeNode extends Node {
+public abstract class CompositeNode extends AbstractNode {
     private final List<Node> children = Lists.newArrayList();
 
     public List<Node> children() {

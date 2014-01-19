@@ -47,6 +47,7 @@ import org.terasology.rendering.nui.baseWidgets.UILabel;
 import org.terasology.rendering.nui.databinding.Binding;
 
 import javax.vecmath.Vector2f;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -55,11 +56,11 @@ import java.io.IOException;
  */
 public class BehaviorEditor extends ZoomableLayout {
     private Port activeConnectionStart;
-    private RenderableNode selectedNode;
-    private RenderableNode newNode;
+    private RenderableNodeImpl selectedNode;
+    private RenderableNodeImpl newNode;
     private BehaviorTree tree;
     private Vector2f mousePos;
-    private Binding<RenderableNode> selectionBinding;
+    private Binding<Node> selectionBinding;
 
     private final InteractionListener moveOver = new BaseInteractionListener(){
         @Override
@@ -83,10 +84,14 @@ public class BehaviorEditor extends ZoomableLayout {
         }
     };
 
-    private void addNode(RenderableNode node) {
-        addWidget(node);
+    private PositionalWidget getPositionalWidgetForNode(Node node) {
+    	return (PositionalWidget)node;
+    }
+    
+    private void addNode(Node node) {
+        addWidget(getPositionalWidgetForNode(node));
         for (int i = 0; i < node.getChildrenCount(); i++) {
-             addWidget(node.getChild(i));
+			addWidget(getPositionalWidgetForNode(node.getChild(i)));
         }
     }
 
@@ -101,8 +106,8 @@ public class BehaviorEditor extends ZoomableLayout {
     public void setTree(BehaviorTree tree) {
         this.tree = tree;
         removeAll();
-        for (RenderableNode widget : tree.getRenderableNodes()) {
-            addWidget(widget);
+        for (Node widget : tree.getRenderableNodes()) {
+            addWidget(getPositionalWidgetForNode(widget));
         }
     }
 
@@ -128,8 +133,8 @@ public class BehaviorEditor extends ZoomableLayout {
         try (SubRegion subRegion = canvas.subRegion(canvas.getRegion(), false)) {
             canvas.setDrawOnTop(true);
             for (UIWidget widget : getWidgets()) {
-                if (widget instanceof RenderableNode) {
-                    RenderableNode renderableNode = (RenderableNode) widget;
+                if (widget instanceof RenderableNodeImpl) {
+                	RenderableNodeImpl renderableNode = (RenderableNodeImpl) widget;
                     for (Port port : renderableNode.getPorts()) {
                         Port targetPort = port.getTargetPort();
                         if (port.isInput() || targetPort == null ) {
@@ -182,7 +187,7 @@ public class BehaviorEditor extends ZoomableLayout {
         }
     }
 
-    public void nodeClicked(RenderableNode node) {
+    public void nodeClicked(RenderableNodeImpl node) {
         selectedNode = node;
         if( selectionBinding!=null ) {
             selectionBinding.set(node);
@@ -209,13 +214,14 @@ public class BehaviorEditor extends ZoomableLayout {
         drawConnection(canvas, start, end, color);
     }
 
-    public RenderableNode createNode(BehaviorNodeComponent data) {
+    public Node createNode(BehaviorNodeComponent data) {
         Node node = CoreRegistry.get(BehaviorNodeFactory.class).getNode(data);
-        newNode = tree.createNode(node);
+        Node newRenderableNode = tree.createNode(node);
+        newNode = (RenderableNodeImpl) newRenderableNode;
         return newNode;
     }
 
-    public void bindSelection( Binding<RenderableNode> binding ) {
+    public void bindSelection( Binding<Node> binding ) {
         selectionBinding = binding;
     }
 }

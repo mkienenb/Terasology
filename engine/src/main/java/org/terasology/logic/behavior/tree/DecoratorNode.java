@@ -15,6 +15,9 @@
  */
 package org.terasology.logic.behavior.tree;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.terasology.engine.API;
 
 /**
@@ -23,7 +26,7 @@ import org.terasology.engine.API;
  * @author synopia
  */
 @API
-public abstract class DecoratorNode extends Node {
+public abstract class DecoratorNode extends AbstractNode {
     protected Node child;
 
     @Override
@@ -62,6 +65,14 @@ public abstract class DecoratorNode extends Node {
         return child == null ? 0 : 1;
     }
 
+    public List<? extends Node> children() {
+    	if (null == child) {
+    		return Collections.emptyList();
+    	} else {
+    		return Collections.singletonList(child);
+    	}
+    }
+    
     @Override
     public int getMaxChildren() {
         return 1;

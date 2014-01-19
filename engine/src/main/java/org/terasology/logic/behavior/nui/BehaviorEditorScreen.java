@@ -16,6 +16,7 @@
 package org.terasology.logic.behavior.nui;
 
 import com.google.common.collect.Lists;
+
 import org.lwjgl.input.Mouse;
 import org.terasology.engine.CoreRegistry;
 import org.terasology.entitySystem.Component;
@@ -26,6 +27,7 @@ import org.terasology.logic.behavior.BehaviorNodeFactory;
 import org.terasology.logic.behavior.BehaviorSystem;
 import org.terasology.logic.behavior.asset.BehaviorTree;
 import org.terasology.logic.behavior.tree.Interpreter;
+import org.terasology.logic.behavior.tree.Node;
 import org.terasology.rendering.nui.NUIManager;
 import org.terasology.rendering.nui.UIScreenLayer;
 import org.terasology.rendering.nui.UIScreenLayerUtil;
@@ -55,7 +57,7 @@ public class BehaviorEditorScreen extends UIScreenLayer {
     private UIDropdown<BehaviorNodeComponent> palette;
     private BehaviorTree selectedTree;
     private Interpreter selectedInterpreter;
-    private RenderableNode selectedNode;
+    private Node selectedNode;
     private BehaviorDebugger debugger;
 
     @In
@@ -70,16 +72,16 @@ public class BehaviorEditorScreen extends UIScreenLayer {
         selectEntity = find("select_entity", UIDropdown.class);
         palette = find("palette", UIDropdown.class);
 
-        behaviorEditor.bindSelection(new Binding<RenderableNode>() {
+        behaviorEditor.bindSelection(new Binding<Node>() {
             @Override
-            public RenderableNode get() {
+            public Node get() {
                 return selectedNode;
             }
 
             @Override
-            public void set(RenderableNode value) {
+            public void set(Node value) {
                 selectedNode = value;
-                PropertyProvider<?> provider = new PropertyProvider<>(value.getNode());
+                PropertyProvider<?> provider = new PropertyProvider<>(value);
                 properties.clear();
                 properties.addPropertyProvider("Behavior Node", provider);
             }

@@ -15,13 +15,17 @@
  */
 package org.terasology.logic.behavior.nui;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import javax.vecmath.Vector2f;
+
 import org.terasology.asset.Assets;
 import org.terasology.entitySystem.Component;
 import org.terasology.input.MouseInput;
 import org.terasology.logic.behavior.BehaviorNodeComponent;
 import org.terasology.logic.behavior.tree.Node;
 import org.terasology.logic.behavior.tree.Status;
+import org.terasology.logic.behavior.tree.Task;
 import org.terasology.logic.behavior.tree.TreeAccessor;
 import org.terasology.math.Vector2i;
 import org.terasology.rendering.assets.TextureRegion;
@@ -31,23 +35,22 @@ import org.terasology.rendering.nui.CoreWidget;
 import org.terasology.rendering.nui.InteractionListener;
 import org.terasology.rendering.nui.baseLayouts.ZoomableLayout;
 
-import javax.vecmath.Vector2f;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author synopia
  */
-public class RenderableNode extends CoreWidget implements ZoomableLayout.PositionalWidget<BehaviorEditor>, Component, TreeAccessor<RenderableNode> {
+public class RenderableNodeImpl extends CoreWidget implements Node, ZoomableLayout.PositionalWidget<BehaviorEditor>, Component, TreeAccessor<Node> {
     private transient TextureRegion texture = Assets.getTextureRegion("engine:button");
 
-    private final List<RenderableNode> children = Lists.newArrayList();
+    private final List<RenderableNodeImpl> children = Lists.newArrayList();
     private transient PortList portList;
 
     private Node node;
     private Vector2f position;
     private Vector2f size;
-    private transient TreeAccessor<RenderableNode> withoutModel;
-    private transient TreeAccessor<RenderableNode> withModel;
+    private transient TreeAccessor<Node> withoutModel;
+    private transient TreeAccessor<Node> withModel;
     private transient BehaviorNodeComponent data;
     private transient Vector2i last;
     private transient BehaviorEditor editor;
@@ -69,7 +72,7 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         @Override
         public void onMouseRelease(MouseInput button, Vector2i pos) {
             if( !dragged ) {
-                editor.nodeClicked(RenderableNode.this);
+                editor.nodeClicked(RenderableNodeImpl.this);
             }
             dragged = false;
         }
@@ -87,12 +90,9 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         }
     };
 
-    public RenderableNode() {
-        this(null);
-    }
-
-    public RenderableNode(BehaviorNodeComponent data) {
-        this.data = data;
+    public RenderableNodeImpl(Node node, BehaviorNodeComponent data) {
+    	this.node = node;
+    	this.data = data;
         position = new Vector2f();
         size = new Vector2f(10, 5);
         portList = new PortList(this);
@@ -118,9 +118,9 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
     }
 
     public void update() {
-        List<RenderableNode> all = Lists.newArrayList(children);
+        List<RenderableNodeImpl> all = Lists.newArrayList(children);
         children.clear();
-        for (RenderableNode renderableNode : all) {
+        for (Node renderableNode : all) {
             withoutModel.insertChild(-1, renderableNode);
         }
     }
@@ -135,20 +135,16 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         this.editor = null;
     }
 
-    public TreeAccessor<RenderableNode> withoutModel() {
+    public TreeAccessor<Node> withoutModel() {
         return withoutModel;
     }
 
-    public TreeAccessor<RenderableNode> withModel() {
+    public TreeAccessor<Node> withModel() {
         return withModel;
     }
 
     public PortList getPortList() {
         return portList;
-    }
-
-    public void setNode(Node node) {
-        this.node = node;
     }
 
     public void setPosition(Vector2f position) {
@@ -162,8 +158,9 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
     public void move(Vector2f diff) {
         position = new Vector2f(position);
         position.add(diff);
-        for (RenderableNode child : children) {
-            child.move(diff);
+        for (Node child : children) {
+        	RenderableNodeImpl impl = (RenderableNodeImpl)child;
+        	impl.move(diff);
         }
     }
 
@@ -175,7 +172,7 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         this.size = size;
     }
 
-    public Node getNode() {
+   private Node getNode() {
         return node;
     }
 
@@ -191,32 +188,37 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         return getPortList().ports();
     }
 
-    public void insertChild(int index, RenderableNode child) {
+    public void insertChild(int index, Node child) {
+    	RenderableNodeImpl childImpl = (RenderableNodeImpl)child;
         if (index == -1) {
-            children.add(child);
+            children.add(childImpl);
         } else {
-            children.add(index, child);
+            children.add(index, childImpl);
         }
     }
 
-    public void setChild(int index, RenderableNode child) {
+    public void setChild(int index, Node child) {
         if (children.size() == index) {
             children.add(null);
         }
         if (children.get(index) != null) {
-            Port.InputPort inputPort = children.get(index).getInputPort();
+            Node childAtIndex = children.get(index);
+        	RenderableNodeImpl impl = (RenderableNodeImpl)childAtIndex;
+			Port.InputPort inputPort = impl.getInputPort();
             inputPort.setTarget(null);
         }
-        children.set(index, child);
+    	RenderableNodeImpl childImpl = (RenderableNodeImpl)child;
+        children.set(index, childImpl);
     }
 
-    public RenderableNode removeChild(int index) {
-        RenderableNode remove = children.remove(index);
-        remove.getInputPort().setTarget(null);
+    public Node removeChild(int index) {
+    	Node remove = children.remove(index);
+    	RenderableNodeImpl impl = (RenderableNodeImpl)remove;
+    	impl.getInputPort().setTarget(null);
         return remove;
     }
 
-    public RenderableNode getChild(int index) {
+    public Node getChild(int index) {
         if (children.size() > index) {
             return children.get(index);
         }
@@ -227,7 +229,8 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         return children.size();
     }
 
-    public List<RenderableNode> children() {
+    @Override
+    public List<? extends Node> children() {
         return children;
     }
 
@@ -251,11 +254,12 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         return getNode() != null ? getNode().toString() : "";
     }
 
-    public void visit(Visitor visitor) {
-        visitor.visit(this);
-        for (RenderableNode child : children) {
-            child.visit(visitor);
+	public <T> T visit(T item, Visitor<T> visitor) {
+		T visit = visitor.visit(item, this);
+        for (Node child : children) {
+            child.visit(visit, visitor);
         }
+        return visit;
     }
 
     public void setStatus(Status status) {
@@ -266,29 +270,25 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
         return status;
     }
 
-    public interface Visitor {
-        void visit(RenderableNode node);
-    }
-
-    public class NodeTreeAccessor implements TreeAccessor<RenderableNode> {
+    public class NodeTreeAccessor implements TreeAccessor<Node> {
         @Override
-        public void insertChild(int index, RenderableNode child) {
-            getNode().insertChild(index, child.getNode());
+        public void insertChild(int index, Node child) {
+            getNode().insertChild(index, child);
         }
 
         @Override
-        public void setChild(int index, RenderableNode child) {
-            getNode().setChild(index, child.getNode());
+        public void setChild(int index, Node child) {
+            getNode().setChild(index, child);
         }
 
         @Override
-        public RenderableNode removeChild(int index) {
+        public RenderableNodeImpl removeChild(int index) {
             getNode().removeChild(index);
             return null;
         }
 
         @Override
-        public RenderableNode getChild(int index) {
+        public RenderableNodeImpl getChild(int index) {
             return null;
         }
 
@@ -302,4 +302,9 @@ public class RenderableNode extends CoreWidget implements ZoomableLayout.Positio
             return getNode().getMaxChildren();
         }
     }
+
+	@Override
+	public Task createTask() {
+		return getNode().createTask();
+	}
 }

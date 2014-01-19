@@ -18,6 +18,7 @@ package org.terasology.logic.behavior.tree;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.engine.API;
@@ -83,7 +84,7 @@ public class Interpreter {
     }
 
     public void start(Node node, Task.Observer observer) {
-        start(node.create(), observer);
+        start(node.createTask(), observer);
     }
 
     public void start(Task task, Task.Observer observer) {

@@ -17,6 +17,7 @@ package org.terasology.logic.behavior.nui;
 
 import org.terasology.asset.Assets;
 import org.terasology.input.MouseInput;
+import org.terasology.logic.behavior.tree.Node;
 import org.terasology.math.Rect2f;
 import org.terasology.math.Vector2i;
 import org.terasology.rendering.assets.TextureRegion;
@@ -33,7 +34,7 @@ import javax.vecmath.Vector2f;
 public abstract class Port extends CoreWidget {
     private TextureRegion active = Assets.getTextureRegion("engine:checkboxChecked");
     private TextureRegion inactive = Assets.getTextureRegion("engine:checkbox");
-    protected RenderableNode node;
+    protected RenderableNodeImpl node;
     protected Rect2f rect;
 
     private InteractionListener connectListener = new BaseInteractionListener() {
@@ -47,7 +48,7 @@ public abstract class Port extends CoreWidget {
     protected Port() {
     }
 
-    protected Port(RenderableNode node) {
+    protected Port(RenderableNodeImpl node) {
         this.node = node;
     }
 
@@ -57,11 +58,11 @@ public abstract class Port extends CoreWidget {
 
     public abstract void updateRect();
 
-    public RenderableNode getSourceNode() {
+    public RenderableNodeImpl getSourceNode() {
         return node;
     }
 
-    public RenderableNode getTargetNode() {
+    public Node getTargetNode() {
         return getTargetPort() != null ? getTargetPort().getSourceNode() : null;
     }
 
@@ -113,7 +114,7 @@ public abstract class Port extends CoreWidget {
             super();
         }
 
-        public OutputPort(RenderableNode renderableNode) {
+        public OutputPort(RenderableNodeImpl renderableNode) {
             super(renderableNode);
         }
 
@@ -138,9 +139,10 @@ public abstract class Port extends CoreWidget {
 
         @Override
         public InputPort getTargetPort() {
-            RenderableNode child = node.withModel().getChild(index());
+            Node child = node.withModel().getChild(index());
             if (child != null) {
-                return child.getInputPort();
+            	RenderableNodeImpl impl = (RenderableNodeImpl)child;
+                return impl.getInputPort();
             }
             return null;
         }
@@ -151,7 +153,7 @@ public abstract class Port extends CoreWidget {
             super();
         }
 
-        public InsertOutputPort(RenderableNode renderableNode) {
+        public InsertOutputPort(RenderableNodeImpl renderableNode) {
             super(renderableNode);
         }
 
@@ -193,7 +195,7 @@ public abstract class Port extends CoreWidget {
             super();
         }
 
-        public InputPort(RenderableNode node) {
+        public InputPort(RenderableNodeImpl node) {
             super(node);
         }
 

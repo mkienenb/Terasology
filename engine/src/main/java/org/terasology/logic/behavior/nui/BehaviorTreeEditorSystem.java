@@ -34,6 +34,8 @@ import org.terasology.input.events.MouseButtonEvent;
 import org.terasology.input.events.MouseWheelEvent;
 import org.terasology.input.events.MouseXAxisEvent;
 import org.terasology.input.events.MouseYAxisEvent;
+import org.terasology.logic.behavior.BehaviorNodeFactory;
+import org.terasology.logic.behavior.RenderableNodeFactory;
 import org.terasology.logic.manager.GUIManager;
 import org.terasology.network.ClientComponent;
 import org.terasology.rendering.gui.framework.UIDisplayElement;
@@ -54,6 +56,9 @@ public class BehaviorTreeEditorSystem implements ComponentSystem, RenderSystem, 
 
     @Override
     public void initialise() {
+    	// TODO: maybe this should be set up in a different place
+        CoreRegistry.put(RenderableNodeFactory.class, new RenderableNodeImplFactory());
+        
         nuiManager.closeScreens();
     }
 

@@ -16,6 +16,8 @@
 package org.terasology.logic.behavior.nui;
 
 import com.google.common.collect.Lists;
+
+import org.terasology.logic.behavior.tree.Node;
 import org.terasology.logic.behavior.tree.TreeAccessor;
 import org.terasology.math.Rect2i;
 import org.terasology.rendering.nui.Canvas;
@@ -25,13 +27,13 @@ import java.util.List;
 /**
  * @author synopia
  */
-public class PortList implements TreeAccessor<RenderableNode> {
+public class PortList implements TreeAccessor<Node> {
     private List<Port> ports = Lists.newLinkedList();
     private Port.InputPort inputPort;
     private Port.InsertOutputPort addLastPortIns;
-    private RenderableNode node;
+    private RenderableNodeImpl node;
 
-    public PortList(RenderableNode node) {
+    public PortList(RenderableNodeImpl node) {
         inputPort = new Port.InputPort(node);
         addLastPortIns = new Port.InsertOutputPort(node);
         ports.add(addLastPortIns);
@@ -79,10 +81,11 @@ public class PortList implements TreeAccessor<RenderableNode> {
     }
 
     @Override
-    public void insertChild(int index, RenderableNode child) {
+    public void insertChild(int index, Node child) {
         Port.OutputPort outputPort = new Port.OutputPort(node);
         Port.InsertOutputPort insertOutputPort = new Port.InsertOutputPort(node);
-        child.getInputPort().setTarget(outputPort);
+    	RenderableNodeImpl impl = (RenderableNodeImpl)child;
+    	impl.getInputPort().setTarget(outputPort);
         if (index == -1) {
             ports.add(ports.size() - 1, insertOutputPort);
             ports.add(ports.size() - 1, outputPort);
@@ -93,18 +96,19 @@ public class PortList implements TreeAccessor<RenderableNode> {
     }
 
     @Override
-    public void setChild(int index, RenderableNode child) {
+    public void setChild(int index, Node child) {
         if (ports.size() == index * 2 + 1) {
             Port.OutputPort outputPort = new Port.OutputPort(node);
             Port.InsertOutputPort insertOutputPort = new Port.InsertOutputPort(node);
             ports.add(ports.size() - 1, insertOutputPort);
             ports.add(ports.size() - 1, outputPort);
         }
-        child.getInputPort().setTarget((Port.OutputPort) ports.get(index * 2 + 1));
+    	RenderableNodeImpl impl = (RenderableNodeImpl)child;
+    	impl.getInputPort().setTarget((Port.OutputPort) ports.get(index * 2 + 1));
     }
 
     @Override
-    public RenderableNode removeChild(int index) {
+    public Node removeChild(int index) {
         ports.remove(index * 2);
         Port output = ports.remove(index * 2);
         output.getSourceNode().getInputPort().setTarget(null);
@@ -112,7 +116,7 @@ public class PortList implements TreeAccessor<RenderableNode> {
     }
 
     @Override
-    public RenderableNode getChild(int index) {
+    public Node getChild(int index) {
         return ports.get(index * 2 + 1).getTargetNode();
     }
 
