@@ -210,7 +210,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
     @Override
     public void drawText(String text, Font font,
                          HorizontalAlign hAlign, VerticalAlign vAlign,
-                         Rect2i absoluteRegion, Rect2i cropRegion,
+                         Rect2i absoluteRegion,
                          Color color, Color shadowColor, float alpha) {
         java.awt.Font javaAwtFont = ((AwtFont) font).getAwtFont();
 
