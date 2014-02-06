@@ -33,6 +33,7 @@ import org.terasology.math.Rect2i;
 import org.terasology.math.Vector2i;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
+import org.terasology.rendering.nui.Color;
 
 public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
 
@@ -112,7 +113,7 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         return textureData.getFilterMode();
     }
 
-    public String getKey(int width, int height, float alpha) {
+    public String getKey(int width, int height, float alpha, Color color) {
         StringBuilder sb = new StringBuilder();
         sb.append(width);
         sb.append("|");
@@ -121,14 +122,15 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         sb.append(height);
         sb.append("|");
         sb.append(alpha);
+        sb.append("|");
+        sb.append(color.toHex());
 
         String key = sb.toString();
         return key;
     }
 
-    public BufferedImage getBufferedImage(int width, int height, float alpha) {
-
-        String key = getKey(width, height, alpha);
+    public BufferedImage getBufferedImage(int width, int height, float alpha, Color color) {
+        String key = getKey(width, height, alpha, color);
 
         BufferedImage bufferedImage = bufferedImageByParametersMap.get(key);
 
@@ -141,7 +143,14 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
             ByteBuffer byteBuffer = buffers[0];
 
             final IntBuffer buf = byteBuffer.asIntBuffer();
-            DataBuffer dataBuffer = new IntBufferBackedDataBuffer(buf, alpha);
+            DataBuffer dataBuffer;
+            if (!color.equals(Color.WHITE)) {
+                dataBuffer = new IntBufferBackedDataBufferAlphaAndColor(buf, alpha, color);
+            } else if (alpha != 1f) {
+                dataBuffer = new IntBufferBackedDataBufferAlphaOnly(buf, alpha);
+            } else {
+                dataBuffer = new IntBufferBackedDataBufferUnmodified(buf);
+            }
             SampleModel sm = new SinglePixelPackedSampleModel(
                     DataBuffer.TYPE_INT,
                     width,
@@ -165,11 +174,41 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         return Rect2i.createFromMinAndSize(0, 0, getWidth(), getHeight());
     }
 
-    public final class IntBufferBackedDataBuffer extends DataBuffer {
+    public class IntBufferBackedDataBufferAlphaAndColor extends DataBuffer {
+        private final IntBuffer buf;
+        private final float red;
+        private final float green;
+        private final float blue;
+        private final float alpha;
+
+        public IntBufferBackedDataBufferAlphaAndColor(IntBuffer buf, float alpha, Color color) {
+            super(DataBuffer.TYPE_INT, buf.limit());
+            this.buf = buf;
+            this.red = color.rf();
+            this.green = color.gf();
+            this.blue = color.bf();
+            this.alpha = alpha * color.af();
+        }
+
+        @Override
+        public int getElem(int bank, int i) {
+            int v = buf.get(i);
+            return ((int)((((v & 0xFF000000) >> 24) * red)) << 24)
+            | ((int)((((v & 0xFF0000) >> 16) * green)) << 16)
+            | ((int)((((v & 0xFF00) >> 8) * blue)) << 8)
+            | ((int)((v & 0xFF) * alpha));
+        }
+
+        @Override
+        public void setElem(int bank, int i, int val) {
+        }
+    }
+
+    public final class IntBufferBackedDataBufferAlphaOnly extends DataBuffer {
         private final IntBuffer buf;
         private final float alpha;
 
-        public IntBufferBackedDataBuffer(IntBuffer buf, float alpha) {
+        public IntBufferBackedDataBufferAlphaOnly(IntBuffer buf, float alpha) {
             super(DataBuffer.TYPE_INT, buf.limit());
             this.buf = buf;
             this.alpha = alpha;
@@ -178,12 +217,33 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         @Override
         public int getElem(int bank, int i) {
             int v = buf.get(i);
-            return (v & 0xFFFFFF00) + (int) ((v & 0xFF) * alpha);
+            return (v & 0xFFFFFF00)
+            | ((int)((v & 0xFF) * alpha));
         }
 
         @Override
         public void setElem(int bank, int i, int val) {
         }
     }
+    
+    public final class IntBufferBackedDataBufferUnmodified extends DataBuffer {
+        private final IntBuffer buf;
+
+        public IntBufferBackedDataBufferUnmodified(IntBuffer buf) {
+            super(DataBuffer.TYPE_INT, buf.limit());
+            this.buf = buf;
+        }
+
+        @Override
+        public int getElem(int bank, int i) {
+            int v = buf.get(i);
+            return v;
+        }
+
+        @Override
+        public void setElem(int bank, int i, int val) {
+        }
+    }
+
 
 }

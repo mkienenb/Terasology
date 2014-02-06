@@ -261,7 +261,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         Texture texture = textureRegion.getTexture();
         AwtTexture awtTexture = (AwtTexture) texture;
 
-        BufferedImage bufferedImage = awtTexture.getBufferedImage(textureRegion.getWidth(), textureRegion.getHeight(), alpha);
+        BufferedImage bufferedImage = awtTexture.getBufferedImage(textureRegion.getWidth(), textureRegion.getHeight(), alpha, color);
 
         Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
 
