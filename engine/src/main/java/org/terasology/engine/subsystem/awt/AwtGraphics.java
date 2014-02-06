@@ -26,11 +26,13 @@ import org.terasology.asset.AssetManager;
 import org.terasology.asset.AssetType;
 import org.terasology.asset.AssetUri;
 import org.terasology.config.Config;
+import org.terasology.engine.ComponentSystemManager;
 import org.terasology.engine.modes.GameState;
 import org.terasology.engine.subsystem.DisplayDevice;
 import org.terasology.engine.subsystem.EngineSubsystem;
 import org.terasology.engine.subsystem.RenderingSubsystemFactory;
 import org.terasology.engine.subsystem.awt.assets.AwtFont;
+import org.terasology.engine.subsystem.awt.assets.AwtMaterial;
 import org.terasology.engine.subsystem.awt.assets.AwtTexture;
 import org.terasology.engine.subsystem.awt.devices.AwtDisplayDevice;
 import org.terasology.engine.subsystem.awt.devices.AwtKeyboardDevice;
@@ -40,6 +42,7 @@ import org.terasology.engine.subsystem.awt.renderer.AwtRenderingSubsystemFactory
 import org.terasology.input.InputSystem;
 import org.terasology.logic.manager.GUIManager;
 import org.terasology.logic.manager.GUIManagerHeadless;
+import org.terasology.logic.players.MenuControlSystem;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.ShaderManager;
 import org.terasology.rendering.ShaderManagerHeadless;
@@ -64,7 +67,6 @@ import org.terasology.rendering.assets.texture.TextureData;
 import org.terasology.rendering.assets.texture.subtexture.Subtexture;
 import org.terasology.rendering.assets.texture.subtexture.SubtextureData;
 import org.terasology.rendering.assets.texture.subtexture.SubtextureFromAtlasResolver;
-import org.terasology.rendering.headless.HeadlessMaterial;
 import org.terasology.rendering.headless.HeadlessMesh;
 import org.terasology.rendering.headless.HeadlessShader;
 import org.terasology.rendering.headless.HeadlessSkeletalMesh;
@@ -177,7 +179,7 @@ public class AwtGraphics implements EngineSubsystem {
         assetManager.setAssetFactory(AssetType.MATERIAL, new AssetFactory<MaterialData, Material>() {
             @Override
             public Material buildAsset(AssetUri uri, MaterialData data) {
-                return new HeadlessMaterial(uri, data);
+                return new AwtMaterial(uri, data);
             }
         });
         assetManager.setAssetFactory(AssetType.MESH, new AssetFactory<MeshData, Mesh>() {
@@ -215,4 +217,8 @@ public class AwtGraphics implements EngineSubsystem {
         CoreRegistry.putPermanently(ShaderManager.class, new ShaderManagerHeadless());
     }
 
+    @Override
+    public void registerSystems(ComponentSystemManager componentSystemManager) {
+        componentSystemManager.register(new MenuControlSystem(), "engine:MenuControlSystem");
+    }
 }
