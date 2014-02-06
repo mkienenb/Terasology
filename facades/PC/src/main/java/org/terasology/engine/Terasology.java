@@ -26,11 +26,11 @@ import javax.swing.JOptionPane;
 import org.terasology.engine.modes.StateMainMenu;
 import org.terasology.engine.paths.PathManager;
 import org.terasology.engine.subsystem.EngineSubsystem;
+import org.terasology.engine.subsystem.awt.AwtGraphics;
 import org.terasology.engine.subsystem.headless.HeadlessAudio;
 import org.terasology.engine.subsystem.headless.HeadlessGraphics;
 import org.terasology.engine.subsystem.headless.HeadlessInput;
 import org.terasology.engine.subsystem.headless.HeadlessTimer;
-import org.terasology.engine.subsystem.headless.mode.StateHeadlessSetup;
 import org.terasology.engine.subsystem.lwjgl.LwjglAudio;
 import org.terasology.engine.subsystem.lwjgl.LwjglGraphics;
 import org.terasology.engine.subsystem.lwjgl.LwjglInput;
@@ -46,6 +46,7 @@ public final class Terasology {
     private static final String HOME_ARG = "-homedir=";
     private static final String LOCAL_ARG = "-homedir";
     private static final String HEADLESS_ARG = "-headless";
+    private static final String AWT_DISPLAY_ARG = "-2d";
 
     private Terasology() {
     }
@@ -53,6 +54,7 @@ public final class Terasology {
     public static void main(String[] args) {
         try {
             boolean isHeadless = false;
+            boolean isAwtDisplay = false;
             Path homePath = null;
             for (String arg : args) {
                 if (arg.startsWith(HOME_ARG)) {
@@ -61,6 +63,8 @@ public final class Terasology {
                     homePath = Paths.get("");
                 } else if (arg.equals(HEADLESS_ARG)) {
                     isHeadless = true;
+                } else if (arg.equals(AWT_DISPLAY_ARG)) {
+                    isAwtDisplay = true;
                 }
             }
             if (homePath != null) {
@@ -68,12 +72,17 @@ public final class Terasology {
             } else {
                 PathManager.getInstance().useDefaultHomePath();
             }
-
+            
             Deque<EngineSubsystem> subsystemList;
             if (isHeadless) {
                 subsystemList = new ArrayDeque<EngineSubsystem>(Arrays.asList(
                         new EngineSubsystem[]{
                                 new HeadlessGraphics(), new HeadlessTimer(), new HeadlessAudio(), new HeadlessInput()
+                        }));
+            } else if (isAwtDisplay) {
+                subsystemList = new ArrayDeque<EngineSubsystem>(Arrays.asList(
+                        new EngineSubsystem[]{
+                                new AwtGraphics(), new HeadlessTimer(), new HeadlessAudio()
                         }));
             } else {
                 subsystemList = new ArrayDeque<EngineSubsystem>(Arrays.asList(
@@ -84,11 +93,7 @@ public final class Terasology {
 
             TerasologyEngine engine = new TerasologyEngine(subsystemList);
             engine.init();
-            if (isHeadless) {
-                engine.run(new StateHeadlessSetup());
-            } else {
-                engine.run(new StateMainMenu());
-            }
+            engine.run(new StateMainMenu());
             engine.dispose();
         } catch (Throwable t) {
             String text = getNestedMessageText(t);
