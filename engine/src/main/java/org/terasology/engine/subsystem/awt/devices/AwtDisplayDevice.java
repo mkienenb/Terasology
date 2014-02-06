@@ -25,7 +25,11 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.JFrame;
 
+import org.lwjgl.opengl.Display;
+import org.terasology.config.Config;
+import org.terasology.config.RenderingConfig;
 import org.terasology.engine.subsystem.DisplayDevice;
+import org.terasology.registry.CoreRegistry;
 
 public class AwtDisplayDevice implements DisplayDevice {
 
@@ -67,12 +71,15 @@ public class AwtDisplayDevice implements DisplayDevice {
         if (state && device.isFullScreenSupported()) {
             device.setFullScreenWindow(mainFrame);
         } else {
+            Config config = CoreRegistry.get(Config.class);
+            RenderingConfig rc = config.getRendering();
+            
             // proceed in non-full-screen mode
-            Dimension size = new Dimension(1280, 720);
+            Dimension size = new Dimension(rc.getWindowWidth(), rc.getWindowHeight());
             mainFrame.getContentPane().setSize(size);
             mainFrame.getContentPane().setPreferredSize(size);
 
-            mainFrame.setLocation(20, 20);
+            mainFrame.setLocation(rc.getWindowPosX(), rc.getWindowPosY());
             mainFrame.pack();
             mainFrame.setVisible(true);
         }
