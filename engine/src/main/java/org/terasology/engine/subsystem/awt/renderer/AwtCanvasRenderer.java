@@ -15,8 +15,11 @@
  */
 package org.terasology.engine.subsystem.awt.renderer;
 
+import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextAttribute;
@@ -103,7 +106,11 @@ public class AwtCanvasRenderer implements CanvasRenderer {
     @Override
     public void drawLine(int sx, int sy, int ex, int ey, Color color) {
         drawGraphics.setColor(getAwtColor(color));
+        Graphics2D g2 = (Graphics2D)drawGraphics;
+        Stroke originalStroke = g2.getStroke();
+        g2.setStroke(new BasicStroke(2));
         drawGraphics.drawLine(sx, sy, ex, ey);
+        g2.setStroke(originalStroke);
     }
 
     private java.awt.Color getAwtColor(Color color) {
@@ -267,22 +274,22 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         //      textureMat.bindTextures();
 
         Rect2f textureAreaFloat = textureRegion.getRegion(); // This is in 0...1 float coordinates
+        Rect2i pixelRegion = textureRegion.getPixelRegion();
 
         // TODO color
         Texture texture = textureRegion.getTexture();
         AwtTexture awtTexture = (AwtTexture) texture;
 
-        // TODO: buffer image size is wrong here for a subregion
-        BufferedImage bufferedImage = awtTexture.getBufferedImage(textureRegion.getWidth(), textureRegion.getHeight(), alpha, color);
+        BufferedImage bufferedImage = awtTexture.getBufferedImage(texture.getWidth(), texture.getHeight(), alpha, color);
 
         Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
 
         // This is in 0...1 float coordinates
         Rect2i textureArea = Rect2i.createFromMinAndSize(
-                Math.round(textureAreaFloat.minX() + ux * textureRegion.getWidth()),
-                Math.round(textureAreaFloat.minY() + uy * textureRegion.getHeight()),
-                Math.round(uw * textureRegion.getWidth()),
-                Math.round(uh * textureRegion.getHeight()));
+                Math.round(textureAreaFloat.minX() + ux * textureAreaFloat.width()),
+                Math.round(textureAreaFloat.minY() + uy * textureAreaFloat.height()),
+                Math.round(uw * textureAreaFloat.width()),
+                Math.round(uh * textureAreaFloat.height()));
 
         //        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(
         //                new Vector2i((int)(absoluteRegion.minX() * scale.x),
@@ -299,13 +306,13 @@ public class AwtCanvasRenderer implements CanvasRenderer {
 
         switch (mode) {
             case SCALE_FILL:
-                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea);
+                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, pixelRegion);
                 break;
             case SCALE_FIT:
-                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea);
+                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, pixelRegion);
                 break;
             case STRETCH:
-                drawImageInternal(bufferedImage, absoluteRegion, textureArea);
+                drawImageInternal(bufferedImage, absoluteRegion, pixelRegion);
                 break;
             case TILED:
                 int xInc = absoluteRegion.width();
@@ -313,7 +320,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
                 for (int x = absoluteRegion.minX(); x < xInc; x += xInc) {
                     for (int y = absoluteRegion.maxX(); y < yInc; y += yInc) {
                         Rect2i absoluteRegionTileOffset = Rect2i.createFromMinAndSize(new Vector2i(x, y), textureArea.size());
-                        drawImageInternal(bufferedImage, absoluteRegionTileOffset, textureArea);
+                        drawImageInternal(bufferedImage, absoluteRegionTileOffset, pixelRegion);
                     }
                 }
                 break;
