@@ -193,10 +193,10 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         @Override
         public int getElem(int bank, int i) {
             int v = buf.get(i);
-            return ((int)((((v & 0xFF000000) >> 24) * red)) << 24)
-            | ((int)((((v & 0xFF0000) >> 16) * green)) << 16)
-            | ((int)((((v & 0xFF00) >> 8) * blue)) << 8)
-            | ((int)((v & 0xFF) * alpha));
+            return ((int) ((((v & 0xFF000000) >> 24) * red)) << 24)
+                   | ((int) ((((v & 0xFF0000) >> 16) * green)) << 16)
+                   | ((int) ((((v & 0xFF00) >> 8) * blue)) << 8)
+                   | ((int) ((v & 0xFF) * alpha));
         }
 
         @Override
@@ -218,14 +218,14 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         public int getElem(int bank, int i) {
             int v = buf.get(i);
             return (v & 0xFFFFFF00)
-            | ((int)((v & 0xFF) * alpha));
+                   | ((int) ((v & 0xFF) * alpha));
         }
 
         @Override
         public void setElem(int bank, int i, int val) {
         }
     }
-    
+
     public final class IntBufferBackedDataBufferUnmodified extends DataBuffer {
         private final IntBuffer buf;
 
@@ -244,6 +244,5 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         public void setElem(int bank, int i, int val) {
         }
     }
-
 
 }
