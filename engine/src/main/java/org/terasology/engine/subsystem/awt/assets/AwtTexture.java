@@ -135,10 +135,6 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         BufferedImage bufferedImage = bufferedImageByParametersMap.get(key);
 
         if (null == bufferedImage) {
-            // TODO: adjust for float ux, float uy, float uw, float uh
-            //          textureMat.setFloat2("texOffset", textureArea.minX() + ux * textureArea.width(), textureArea.minY() + uy * textureArea.height());
-            //          textureMat.setFloat2("texSize", uw * textureArea.width(), uh * textureArea.height());
-
             ByteBuffer[] buffers = getData().getBuffers();
             ByteBuffer byteBuffer = buffers[0];
 
