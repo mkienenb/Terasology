@@ -32,6 +32,7 @@ import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
 import org.terasology.engine.subsystem.awt.assets.AwtFont;
+import org.terasology.engine.subsystem.awt.assets.AwtMaterial;
 import org.terasology.engine.subsystem.awt.assets.AwtTexture;
 import org.terasology.engine.subsystem.awt.devices.AwtDisplayDevice;
 import org.terasology.math.Rect2f;
@@ -76,7 +77,17 @@ public class AwtCanvasRenderer implements CanvasRenderer {
 
     @Override
     public void drawMesh(Mesh mesh, Material material, Rect2i drawRegion, Rect2i cropRegion, Quat4f rotation, Vector3f offset, float scale, float alpha) {
-        throw new RuntimeException("unsupported");
+        AwtMaterial awtMaterial = (AwtMaterial) material;
+        Texture texture = awtMaterial.getTexture("texture");
+        if (null == texture) {
+            throw new RuntimeException("unsupported");
+        }
+
+        float ux = 0f;
+        float uy = 0f;
+        float uw = 1f;
+        float uh = 1f;
+        drawTexture(texture, Color.WHITE, ScaleMode.STRETCH, drawRegion, ux, uy, uw, uh, alpha);
     }
 
     @Override
@@ -261,12 +272,13 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         Texture texture = textureRegion.getTexture();
         AwtTexture awtTexture = (AwtTexture) texture;
 
+        // TODO: buffer image size is wrong here for a subregion
         BufferedImage bufferedImage = awtTexture.getBufferedImage(textureRegion.getWidth(), textureRegion.getHeight(), alpha, color);
 
         Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
 
         // This is in 0...1 float coordinates
-        Rect2i textureArea = Rect2i.createFromMinAndMax(
+        Rect2i textureArea = Rect2i.createFromMinAndSize(
                 Math.round(textureAreaFloat.minX() + ux * textureRegion.getWidth()),
                 Math.round(textureAreaFloat.minY() + uy * textureRegion.getHeight()),
                 Math.round(uw * textureRegion.getWidth()),
