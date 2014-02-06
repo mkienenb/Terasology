@@ -273,10 +273,8 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         //      textureMat.setFloat4("color", color.rf(), color.gf(), color.bf(), color.af() * alpha);
         //      textureMat.bindTextures();
 
-        Rect2f textureAreaFloat = textureRegion.getRegion(); // This is in 0...1 float coordinates
         Rect2i pixelRegion = textureRegion.getPixelRegion();
 
-        // TODO color
         Texture texture = textureRegion.getTexture();
         AwtTexture awtTexture = (AwtTexture) texture;
 
@@ -284,12 +282,12 @@ public class AwtCanvasRenderer implements CanvasRenderer {
 
         Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
 
-        // This is in 0...1 float coordinates
-        Rect2i textureArea = Rect2i.createFromMinAndSize(
-                Math.round(textureAreaFloat.minX() + ux * textureAreaFloat.width()),
-                Math.round(textureAreaFloat.minY() + uy * textureAreaFloat.height()),
-                Math.round(uw * textureAreaFloat.width()),
-                Math.round(uh * textureAreaFloat.height()));
+        Rect2i textureArea2 = Rect2i.createFromMinAndSize(
+                Math.round(pixelRegion.minX() + ux * pixelRegion.width()),
+                Math.round(pixelRegion.minY() + uy * pixelRegion.height()),
+                Math.round(uw * pixelRegion.width()),
+                Math.round(uh * pixelRegion.height()));
+
 
         //        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(
         //                new Vector2i((int)(absoluteRegion.minX() * scale.x),
@@ -306,21 +304,21 @@ public class AwtCanvasRenderer implements CanvasRenderer {
 
         switch (mode) {
             case SCALE_FILL:
-                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, pixelRegion);
+                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea2);
                 break;
             case SCALE_FIT:
-                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, pixelRegion);
+                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea2);
                 break;
             case STRETCH:
-                drawImageInternal(bufferedImage, absoluteRegion, pixelRegion);
+                drawImageInternal(bufferedImage, absoluteRegion, textureArea2);
                 break;
             case TILED:
                 int xInc = absoluteRegion.width();
                 int yInc = absoluteRegion.height();
                 for (int x = absoluteRegion.minX(); x < xInc; x += xInc) {
                     for (int y = absoluteRegion.maxX(); y < yInc; y += yInc) {
-                        Rect2i absoluteRegionTileOffset = Rect2i.createFromMinAndSize(new Vector2i(x, y), textureArea.size());
-                        drawImageInternal(bufferedImage, absoluteRegionTileOffset, pixelRegion);
+                        Rect2i absoluteRegionTileOffset = Rect2i.createFromMinAndSize(new Vector2i(x, y), textureArea2.size());
+                        drawImageInternal(bufferedImage, absoluteRegionTileOffset, textureArea2);
                     }
                 }
                 break;
