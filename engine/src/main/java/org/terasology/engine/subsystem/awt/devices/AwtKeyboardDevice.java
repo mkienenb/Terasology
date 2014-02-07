@@ -75,7 +75,7 @@ public class AwtKeyboardDevice implements KeyboardDevice {
         K(KeyId.K, KeyEvent.VK_K),
         L(KeyId.L, KeyEvent.VK_L),
         SEMICOLON(KeyId.SEMICOLON, KeyEvent.VK_SEMICOLON),
-        GRAVE(KeyId.GRAVE, KeyEvent.VK_DEAD_GRAVE), // unclear if this is the same one
+        GRAVE(KeyId.GRAVE, KeyEvent.VK_BACK_QUOTE),
         BACKSLASH(KeyId.BACKSLASH, KeyEvent.VK_BACK_SLASH),
         Z(KeyId.Z, KeyEvent.VK_Z),
         X(KeyId.X, KeyEvent.VK_X),
@@ -145,46 +145,54 @@ public class AwtKeyboardDevice implements KeyboardDevice {
         PAGE_DOWN(KeyId.PAGE_DOWN, KeyEvent.VK_PAGE_DOWN),
         INSERT(KeyId.INSERT, KeyEvent.VK_INSERT),
         DELETE(KeyId.DELETE, KeyEvent.VK_DELETE),
-        CLEAR(KeyId.CLEAR, KeyEvent.VK_CLEAR) // (Mac)
-        ;
+        CLEAR(KeyId.CLEAR, KeyEvent.VK_CLEAR), // (Mac)
 
-/*
-        APOSTROPHE(KeyId.APOSTROPHE, KeyEvent.VK_APOSTROPHE),
-        
-        LEFT_CTRL(KeyId.LEFT_CTRL, KeyEvent.VK_LEFT_CTRL),
-        RIGHT_CTRL(KeyId.RIGHT_CTRL, KeyEvent.VK_RIGHT_CTRL),
-        
-        LEFT_SHIFT(KeyId.LEFT_SHIFT, KeyEvent.VK_LEFT_SHIFT),
-        RIGHT_SHIFT(KeyId.RIGHT_SHIFT, KeyEvent.VK_RIGHT_SHIFT),
-        
-        LEFT_ALT(KeyId.LEFT_ALT, KeyEvent.VK_LEFT_ALT),
-        RIGHT_ALT(KeyId.RIGHT_ALT, KeyEvent.VK_RIGHT_ALT),
+        // In case this is a one-key keyboard of some kind
+        CTRL(KeyId.LEFT_CTRL, KeyEvent.VK_CONTROL),
+        ALT(KeyId.LEFT_ALT, KeyEvent.VK_ALT),
+        META(KeyId.LEFT_META, KeyEvent.VK_META),
+        WINDOWS(KeyId.LEFT_META, KeyEvent.VK_WINDOWS);
 
-        LEFT_META(KeyId.LEFT_META, KeyEvent.VK_LEFT_META), // Left Windows/Option key
-        RIGHT_META(KeyId.RIGHT_META, KeyEvent.VK_RIGHT_META), // Right Windows/Option key
-        
-        NUMPAD_EQUALS(KeyId.NUMPAD_EQUALS, KeyEvent.VK_NUMPADEQUALS),
-        NUMPAD_ENTER(KeyId.NUMPAD_ENTER, KeyEvent.VK_NUMPADENTER),
-        NUMPAD_COMMA(KeyId.NUMPAD_COMMA, KeyEvent.VK_NUMPADCOMMA), // (NEC PC98)
-        
-        NOCONVERT(KeyId.NOCONVERT, KeyEvent.VK_NOCONVERT), // Japanese Keyboard key
-        YEN(KeyId.YEN, KeyEvent.VK_YEN), // Japanese keyboard key for yen
-        AX(KeyId.AX, KeyEvent.VK_AX), // (Japan AX)
-        UNLABELED(KeyId.UNLABELED, KeyEvent.VK_UNLABELED), // (J3100) (a mystery button?)
-        SECTION(KeyId.SECTION, KeyEvent.VK_SECTION),
-        FUNCTION(KeyId.FUNCTION, KeyEvent.VK_FUNCTION),
-        APPS(KeyId.APPS, KeyEvent.VK_APPS),
-        POWER(KeyId.POWER, KeyEvent.VK_POWER),
-        SLEEP(KeyId.SLEEP, KeyEvent.VK_SLEEP),
-     
- */
-        
+        /*
+                APOSTROPHE(KeyId.APOSTROPHE, KeyEvent.VK_APOSTROPHE),
+                
+                // should be taken care of in left/right location
+                LEFT_CTRL(KeyId.LEFT_CTRL, KeyEvent.VK_LEFT_CTRL),
+                RIGHT_CTRL(KeyId.RIGHT_CTRL, KeyEvent.VK_RIGHT_CTRL),
+                
+                LEFT_SHIFT(KeyId.LEFT_SHIFT, KeyEvent.VK_LEFT_SHIFT),
+                RIGHT_SHIFT(KeyId.RIGHT_SHIFT, KeyEvent.VK_RIGHT_SHIFT),
+                
+                LEFT_ALT(KeyId.LEFT_ALT, KeyEvent.VK_LEFT_ALT),
+                RIGHT_ALT(KeyId.RIGHT_ALT, KeyEvent.VK_RIGHT_ALT),
+
+                LEFT_META(KeyId.LEFT_META, KeyEvent.VK_LEFT_META), // Left Windows/Option key
+                RIGHT_META(KeyId.RIGHT_META, KeyEvent.VK_RIGHT_META), // Right Windows/Option key
+                
+                // should be taken care of in numpad location
+                NUMPAD_EQUALS(KeyId.NUMPAD_EQUALS, KeyEvent.VK_NUMPADEQUALS),
+                NUMPAD_ENTER(KeyId.NUMPAD_ENTER, KeyEvent.VK_NUMPADENTER),
+                NUMPAD_COMMA(KeyId.NUMPAD_COMMA, KeyEvent.VK_NUMPADCOMMA), // (NEC PC98)
+                
+                // unsupported
+                NOCONVERT(KeyId.NOCONVERT, KeyEvent.VK_NOCONVERT), // Japanese Keyboard key
+                YEN(KeyId.YEN, KeyEvent.VK_YEN), // Japanese keyboard key for yen
+                AX(KeyId.AX, KeyEvent.VK_AX), // (Japan AX)
+                UNLABELED(KeyId.UNLABELED, KeyEvent.VK_UNLABELED), // (J3100) (a mystery button?)
+                SECTION(KeyId.SECTION, KeyEvent.VK_SECTION),
+                FUNCTION(KeyId.FUNCTION, KeyEvent.VK_FUNCTION),
+                APPS(KeyId.APPS, KeyEvent.VK_APPS),
+                POWER(KeyId.POWER, KeyEvent.VK_POWER),
+                SLEEP(KeyId.SLEEP, KeyEvent.VK_SLEEP),
+             
+         */
+
         private static Map<Integer, Integer> lookupByJavaKeyEventCode;
         private static Map<Integer, Integer> lookupById;
 
         private int id;
         private int javaKeyEventCode;
- 
+
         static {
             lookupByJavaKeyEventCode = Maps.newHashMapWithExpectedSize(Key.values().length);
             lookupById = Maps.newHashMapWithExpectedSize(Key.values().length);
@@ -206,7 +214,7 @@ public class AwtKeyboardDevice implements KeyboardDevice {
         public int getJavaKeyEventCode() {
             return javaKeyEventCode;
         }
-            
+
         public static Integer findById(int id) {
             Integer result = lookupById.get(id);
             if (result == null) {
@@ -214,12 +222,114 @@ public class AwtKeyboardDevice implements KeyboardDevice {
             }
             return result;
         }
+
         public static Integer findByJavaKeyEventCode(int code) {
             Integer result = lookupByJavaKeyEventCode.get(code);
             if (result == null) {
                 return null;
             }
             return result;
+        }
+
+        public static Integer findByJavaKeyEvent(KeyEvent e) {
+            int keyCode = e.getKeyCode();
+            int location = e.getKeyLocation();
+            switch (location) {
+                case KeyEvent.KEY_LOCATION_LEFT:
+                    switch (keyCode) {
+                        case KeyEvent.VK_SHIFT:
+                            return KeyId.LEFT_SHIFT;
+                        case KeyEvent.VK_CONTROL:
+                            return KeyId.LEFT_CTRL;
+                        case KeyEvent.VK_ALT:
+                            return KeyId.LEFT_ALT;
+                        case KeyEvent.VK_WINDOWS:
+                        case KeyEvent.VK_META:
+                            return KeyId.LEFT_META;
+                        default:
+                            return KeyId.NONE;
+                    }
+                case KeyEvent.KEY_LOCATION_RIGHT:
+                    switch (keyCode) {
+                        case KeyEvent.VK_SHIFT:
+                            return KeyId.RIGHT_SHIFT;
+                        case KeyEvent.VK_CONTROL:
+                            return KeyId.RIGHT_CTRL;
+                        case KeyEvent.VK_ALT:
+                            return KeyId.RIGHT_ALT;
+                        case KeyEvent.VK_META:
+                        case KeyEvent.VK_WINDOWS:
+                            return KeyId.RIGHT_META;
+                        default:
+                            return KeyId.NONE;
+                    }
+                case KeyEvent.KEY_LOCATION_NUMPAD:
+                    switch (keyCode) {
+                        case KeyEvent.VK_0:
+                        case KeyEvent.VK_NUMPAD0:
+                            return KeyId.NUMPAD_0;
+                        case KeyEvent.VK_1:
+                        case KeyEvent.VK_NUMPAD1:
+                            return KeyId.NUMPAD_1;
+                        case KeyEvent.VK_2:
+                        case KeyEvent.VK_NUMPAD2:
+                            return KeyId.NUMPAD_2;
+                        case KeyEvent.VK_3:
+                        case KeyEvent.VK_NUMPAD3:
+                            return KeyId.NUMPAD_3;
+                        case KeyEvent.VK_4:
+                        case KeyEvent.VK_NUMPAD4:
+                            return KeyId.NUMPAD_4;
+                        case KeyEvent.VK_5:
+                        case KeyEvent.VK_NUMPAD5:
+                            return KeyId.NUMPAD_5;
+                        case KeyEvent.VK_6:
+                        case KeyEvent.VK_NUMPAD6:
+                            return KeyId.NUMPAD_6;
+                        case KeyEvent.VK_7:
+                        case KeyEvent.VK_NUMPAD7:
+                            return KeyId.NUMPAD_7;
+                        case KeyEvent.VK_8:
+                        case KeyEvent.VK_NUMPAD8:
+                            return KeyId.NUMPAD_8;
+                        case KeyEvent.VK_9:
+                        case KeyEvent.VK_NUMPAD9:
+                            return KeyId.NUMPAD_9;
+                        case KeyEvent.VK_COMMA:
+                            return KeyId.NUMPAD_COMMA;
+                        case KeyEvent.VK_DIVIDE:
+                        case KeyEvent.VK_SLASH:
+                            return KeyId.NUMPAD_DIVIDE;
+                        case KeyEvent.VK_ENTER:
+                            return KeyId.NUMPAD_ENTER;
+                        case KeyEvent.VK_EQUALS:
+                            return KeyId.NUMPAD_EQUALS;
+                        case KeyEvent.VK_MINUS:
+                        case KeyEvent.VK_SUBTRACT:
+                            return KeyId.NUMPAD_MINUS;
+                        case KeyEvent.VK_MULTIPLY:
+                        case KeyEvent.VK_ASTERISK:
+                            return KeyId.NUMPAD_MULTIPLY;
+                        case KeyEvent.VK_PERIOD:
+                        case KeyEvent.VK_DECIMAL:
+                            return KeyId.NUMPAD_PERIOD;
+                        case KeyEvent.VK_ADD:
+                        case KeyEvent.VK_PLUS:
+                            return KeyId.NUMPAD_PLUS;
+                        default:
+                            return KeyId.NONE;
+                    }
+                case KeyEvent.KEY_LOCATION_UNKNOWN:
+                    return KeyId.NONE;
+                case KeyEvent.KEY_LOCATION_STANDARD:
+                    Integer keyId = findByJavaKeyEventCode(keyCode);
+                    if (null == keyId) {
+                        return KeyId.NONE;
+                    }
+                    return keyId;
+                default:
+                    return KeyId.NONE;
+            }
         }
     };
 
@@ -233,6 +343,7 @@ public class AwtKeyboardDevice implements KeyboardDevice {
         this.mainWindow = mainFrame;
         keyDown = -1;
 
+        mainWindow.setFocusTraversalKeysEnabled(false);
         mainWindow.addKeyListener(new KeyListener() {
 
             @Override
@@ -257,8 +368,7 @@ public class AwtKeyboardDevice implements KeyboardDevice {
             }
 
             private int translateVTKeyCodeToTerasologyKeyCode(KeyEvent e) {
-                int keyCode = e.getKeyCode();
-                Integer keyId = KeyLookupTable.findByJavaKeyEventCode(keyCode);
+                Integer keyId = KeyLookupTable.findByJavaKeyEvent(e);
                 if (null == keyId) {
                     // TODO: handle remaining keys
                     return Keyboard.KEY_NONE;
