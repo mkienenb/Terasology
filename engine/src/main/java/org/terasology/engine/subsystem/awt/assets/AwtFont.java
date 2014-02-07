@@ -55,6 +55,64 @@ public class AwtFont extends BaseFont {
     }
 
     @Override
+    public int getWidth(String text) {
+        BufferedImage graphicsProvider = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = graphicsProvider.createGraphics();
+        g2.setFont(getAwtFont());
+        FontMetrics fontMetrics = g2.getFontMetrics();
+
+        int largestWidth = 0;
+        String[] pieces = text.split("\n");
+        for (String string : pieces) {
+            Rectangle2D stringBounds = fontMetrics.getStringBounds(string, g2);
+            int currentWidth = (int) stringBounds.getWidth();
+            largestWidth = Math.max(largestWidth, currentWidth);
+        }
+        
+        return largestWidth;
+    }
+
+    @Override
+    public int getWidth(Character c) {
+        BufferedImage graphicsProvider = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = graphicsProvider.createGraphics();
+        g2.setFont(getAwtFont());
+        FontMetrics fontMetrics = g2.getFontMetrics();
+
+        if (c != null) {
+            Rectangle2D stringBounds = fontMetrics.getStringBounds(Character.valueOf(c).toString(), g2);
+            return(int) stringBounds.getWidth();
+        }
+        return 0;
+    }
+
+    @Override
+    public int getHeight(String text) {
+        BufferedImage graphicsProvider = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = graphicsProvider.createGraphics();
+        g2.setFont(getAwtFont());
+        FontMetrics fontMetrics = g2.getFontMetrics();
+
+        int height = fontMetrics.getHeight();
+        for (char c : text.toCharArray()) {
+            if (c == '\n') {
+                height += fontMetrics.getHeight();
+            }
+        }
+        return height;
+    }
+
+    @Override
+    public int getLineHeight() {
+        BufferedImage graphicsProvider = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = graphicsProvider.createGraphics();
+        g2.setFont(getAwtFont());
+        FontMetrics fontMetrics = g2.getFontMetrics();
+
+        return fontMetrics.getHeight();
+    }
+
+    @Override
     public void drawString(int x, int y, String text, Color color) {
     }
 
