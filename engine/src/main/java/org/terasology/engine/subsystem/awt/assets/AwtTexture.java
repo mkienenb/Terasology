@@ -15,6 +15,7 @@
  */
 package org.terasology.engine.subsystem.awt.assets;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DirectColorModel;
@@ -159,7 +160,11 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
                     new DirectColorModel(32, 0xFF000000, 0xFF0000, 0xFF00, 0xFF),
                     raster, false, null);
 
-            bufferedImageByParametersMap.put(key, bufferedImage);
+            BufferedImage bufferedImageArgb = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = bufferedImageArgb.createGraphics();
+            g2.drawImage(bufferedImage, 0, 0, null);
+            g2.dispose();
+            bufferedImageByParametersMap.put(key, bufferedImageArgb);
         }
 
         return bufferedImage;
