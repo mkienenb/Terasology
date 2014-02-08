@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 MovingBlocks
+ * Copyright 2014 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package org.terasology.rendering.gui.windows.metricsScreen;
+package org.terasology.rendering.nui.layers.ingame.metrics;
 
-import org.terasology.rendering.gui.widgets.UILabel;
-
-import java.util.List;
+import gnu.trove.map.TObjectDoubleMap;
+import org.terasology.monitoring.PerformanceMonitor;
 
 /**
  * @author Immortius
  */
-final class NullMode extends MetricsMode {
+final class RunningMeansMode extends TimeMetricsMode {
 
-    public NullMode() {
-        super("", false, false);
+    public RunningMeansMode() {
+        super("Running means", 10);
     }
 
     @Override
-    public void updateLines(List<UILabel> lines) {
-        for (UILabel line : lines) {
-            line.setVisible(false);
-        }
+    protected TObjectDoubleMap<String> gatherMetrics() {
+        return PerformanceMonitor.getRunningMean();
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
+
+    @Override
+    public boolean isPerformanceManagerMode() {
+        return true;
     }
 }

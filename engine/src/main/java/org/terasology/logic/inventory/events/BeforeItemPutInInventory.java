@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 MovingBlocks
+ * Copyright 2014 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.terasology.logic.inventory.events;
 
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.network.ServerEvent;
+import org.terasology.entitySystem.event.AbstractConsumableEvent;
 
 /**
- * @author Immortius
+ * @author Marcin Sciesinski <marcins78@gmail.com>
  */
-@ServerEvent
-public class MoveItemAmountRequest extends MoveItemRequest {
-    private int amount;
+public class BeforeItemPutInInventory extends AbstractConsumableEvent {
+    private EntityRef instigator;
+    private EntityRef item;
+    private int slot;
 
-    protected MoveItemAmountRequest() {
+    public BeforeItemPutInInventory(EntityRef instigator, EntityRef item, int slot) {
+        this.instigator = instigator;
+        this.item = item;
+        this.slot = slot;
     }
 
-    public MoveItemAmountRequest(EntityRef instigator, EntityRef fromInventory, int fromSlot, EntityRef toInventory, int toSlot, int amount, int changeId) {
-        super(instigator, fromInventory, fromSlot, toInventory, toSlot, changeId);
-        this.amount = amount;
+    public EntityRef getItem() {
+        return item;
     }
 
-    public int getAmount() {
-        return amount;
+    public int getSlot() {
+        return slot;
+    }
+
+    public EntityRef getInstigator() {
+        return instigator;
     }
 }
