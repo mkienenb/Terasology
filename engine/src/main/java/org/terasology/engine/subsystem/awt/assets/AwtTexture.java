@@ -16,6 +16,9 @@
 package org.terasology.engine.subsystem.awt.assets;
 
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DirectColorModel;
@@ -160,11 +163,9 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
                     new DirectColorModel(32, 0xFF000000, 0xFF0000, 0xFF00, 0xFF),
                     raster, false, null);
 
-            BufferedImage bufferedImageArgb = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = bufferedImageArgb.createGraphics();
-            g2.drawImage(bufferedImage, 0, 0, null);
-            g2.dispose();
-            bufferedImageByParametersMap.put(key, bufferedImageArgb);
+            BufferedImage compatibleBufferedImage = createCompatibleImage(bufferedImage);
+            
+            bufferedImageByParametersMap.put(key, compatibleBufferedImage);
         }
 
         return bufferedImage;
@@ -175,6 +176,39 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         return Rect2i.createFromMinAndSize(0, 0, getWidth(), getHeight());
     }
 
+    /**
+     * This content is from Stack Overflow.
+     * http://stackoverflow.com/questions/6319465/fast-loading-and-drawing-of-rgb-data-in-bufferedimage
+     * http://creativecommons.org/licenses/by-sa/3.0/
+     * by awinbra
+     * http://stackoverflow.com/users/167884/awinbra
+     * 
+     * Apparently, it's ok to use this code without doing anything further than the above:
+     * http://meta.stackoverflow.com/questions/139698/re-using-ideas-or-small-pieces-of-code-from-stackoverflow-com#139701
+     * 
+     * Note that there are several optimizations available above what this method provides in the same stackoverflow page.
+     * We might want to look at this at some point.
+     * 
+    */
+    private BufferedImage createCompatibleImage(BufferedImage image)
+    {
+//  worked for msteiger, just in case what we're doing below breaks it again
+//      BufferedImage bufferedImageArgb = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+
+        BufferedImage newImage = gc.createCompatibleImage(
+            image.getWidth(), 
+            image.getHeight(), 
+            Transparency.TRANSLUCENT);
+
+        Graphics2D g = newImage.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
+        return newImage;
+    }
+    
     public class IntBufferBackedDataBufferAlphaAndColor extends DataBuffer {
         private final IntBuffer buf;
         private final float red;
