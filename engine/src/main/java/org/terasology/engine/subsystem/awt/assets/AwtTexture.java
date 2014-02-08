@@ -29,15 +29,19 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.terasology.asset.AbstractAsset;
 import org.terasology.asset.AssetUri;
+import org.terasology.math.Border;
 import org.terasology.math.Rect2f;
 import org.terasology.math.Rect2i;
 import org.terasology.math.Vector2i;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureData;
 import org.terasology.rendering.nui.Color;
+
+import com.google.common.collect.Maps;
 
 public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
 
@@ -46,7 +50,8 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
     private TextureData textureData;
     private int id;
 
-    private Map<String, BufferedImage> bufferedImageByParametersMap = new HashMap<String, BufferedImage>();
+    private Map<BufferedImageCacheKey, BufferedImage> bufferedImageByParametersMap = new HashMap<BufferedImageCacheKey, BufferedImage>();
+    private Map<BufferedImageCacheKey, BufferedImage> cachedBorderedTextures = Maps.newHashMap();
 
     public AwtTexture(AssetUri uri, TextureData textureData) {
         super(uri);
@@ -63,8 +68,8 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
 
     @Override
     public void reload(TextureData data) {
+        dispose();
         this.textureData = data;
-        bufferedImageByParametersMap.clear();
     }
 
     @Override
@@ -75,7 +80,8 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
     @Override
     public void dispose() {
         this.textureData = null;
-        this.bufferedImageByParametersMap = new HashMap<String, BufferedImage>();
+        this.bufferedImageByParametersMap = new HashMap<BufferedImageCacheKey, BufferedImage>();
+        this.cachedBorderedTextures = new HashMap<BufferedImageCacheKey, BufferedImage>();
     }
 
     @Override
@@ -118,24 +124,8 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         return textureData.getFilterMode();
     }
 
-    public String getKey(int width, int height, float alpha, Color color) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(width);
-        sb.append("|");
-        sb.append(width);
-        sb.append("|");
-        sb.append(height);
-        sb.append("|");
-        sb.append(alpha);
-        sb.append("|");
-        sb.append(color.toHex());
-
-        String key = sb.toString();
-        return key;
-    }
-
     public BufferedImage getBufferedImage(int width, int height, float alpha, Color color) {
-        String key = getKey(width, height, alpha, color);
+        BufferedImageCacheKey key = new BufferedImageCacheKey(width, height, alpha, color);
 
         BufferedImage bufferedImage = bufferedImageByParametersMap.get(key);
 
@@ -207,6 +197,69 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
         g.dispose();
 
         return newImage;
+    }
+
+    public BufferedImage getCachedBorderTexture(BufferedImageCacheKey key) {
+        return cachedBorderedTextures.get(key);
+    }
+
+    public BufferedImage putCachedBorderTexture(BufferedImageCacheKey key, BufferedImage bufferedImage) {
+        return cachedBorderedTextures.put(key, bufferedImage);
+    }
+
+    /**
+     * A key that identifies an entry in the bufferedImage cache. It contains the elements that affect the generation of mesh for texture rendering.
+     */
+    public static class BufferedImageCacheKey {
+
+        private Vector2i textureSize;
+        private Vector2i areaSize;
+        private Border border;
+        private boolean tiled;
+        private float uw;
+        private float uh;
+        private float alpha;
+        private Color color;
+
+        public BufferedImageCacheKey(int width, int height, float alpha, Color color) {
+            this.textureSize = new Vector2i(width, height);
+            this.alpha = alpha;
+            this.color = color;
+        }
+
+        public BufferedImageCacheKey(Vector2i textureSize, Vector2i areaSize, Border border, boolean tiled, float uw, float uh, float alpha) {
+            this.textureSize = new Vector2i(textureSize);
+            this.areaSize = new Vector2i(areaSize);
+            this.border = border;
+            this.tiled = tiled;
+            this.uw = uw;
+            this.uh = uh;
+            this.alpha = alpha;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof BufferedImageCacheKey) {
+                BufferedImageCacheKey other = (BufferedImageCacheKey) obj;
+                return Objects.equals(textureSize, other.textureSize)
+                       && Objects.equals(areaSize, other.areaSize)
+                       && Objects.equals(border, other.border)
+                       && tiled == other.tiled
+                       && uw == other.uw
+                       && uh == other.uh
+                       && alpha == other.alpha
+                       && Objects.equals(color, other.color);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(textureSize, areaSize, border, tiled, uw, uh, alpha);
+        }
     }
 
     public class IntBufferBackedDataBufferAlphaAndColor extends DataBuffer {

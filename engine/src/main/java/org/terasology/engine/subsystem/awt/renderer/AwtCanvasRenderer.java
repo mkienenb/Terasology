@@ -27,18 +27,16 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
-import java.util.Map;
-import java.util.Objects;
 
 import javax.swing.JFrame;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
-import org.terasology.asset.AssetUri;
 import org.terasology.engine.subsystem.awt.assets.AwtFont;
 import org.terasology.engine.subsystem.awt.assets.AwtMaterial;
 import org.terasology.engine.subsystem.awt.assets.AwtTexture;
+import org.terasology.engine.subsystem.awt.assets.AwtTexture.BufferedImageCacheKey;
 import org.terasology.engine.subsystem.awt.devices.AwtDisplayDevice;
 import org.terasology.math.Border;
 import org.terasology.math.Rect2f;
@@ -56,14 +54,10 @@ import org.terasology.rendering.nui.ScaleMode;
 import org.terasology.rendering.nui.VerticalAlign;
 import org.terasology.rendering.nui.internal.CanvasRenderer;
 
-import com.google.common.collect.Maps;
-
 /**
- * @author Immortius
+ * @author mkienenb
  */
 public class AwtCanvasRenderer implements CanvasRenderer {
-
-    private Map<TextureCacheKey, BufferedImage> cachedTextures = Maps.newLinkedHashMap();
 
     private JFrame window;
 
@@ -364,14 +358,14 @@ public class AwtCanvasRenderer implements CanvasRenderer {
      * It's unclear why I don't need to use ux/uy
      */
     private void drawTextureBorderedWithoutUxUy(TextureRegion texture, Rect2i region, Border border, boolean tile, float uw, float uh, float alpha) {
+        Texture textureRegionTexture = texture.getTexture();
+        AwtTexture awtTexture = (AwtTexture) textureRegionTexture;
+
         Vector2i textureSize = new Vector2i(TeraMath.ceilToInt(texture.getWidth() * uw), TeraMath.ceilToInt(texture.getHeight() * uh));
 
-        TextureCacheKey key = new TextureCacheKey(texture.getTexture().getURI(), textureSize, region.size(), border, tile, uw, uh, alpha);
-        BufferedImage mesh = cachedTextures.get(key);
+        BufferedImageCacheKey key = new BufferedImageCacheKey(textureSize, region.size(), border, tile, uw, uh, alpha);
+        BufferedImage mesh = awtTexture.getCachedBorderTexture(key);
         if (mesh == null) {
-
-            Texture textureRegionTexture = texture.getTexture();
-            AwtTexture awtTexture = (AwtTexture) textureRegionTexture;
 
             Color color = Color.WHITE;
             BufferedImage source = awtTexture.getBufferedImage(textureRegionTexture.getWidth(), textureRegionTexture.getHeight(), alpha, color);
@@ -454,7 +448,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
             }
 
             mesh = builder.build();
-            cachedTextures.put(key, mesh);
+            awtTexture.putCachedBorderTexture(key, mesh);
         }
 
         Rect2i sourceRegion = Rect2i.createFromMinAndSize(mesh.getMinX(), mesh.getMinY(), mesh.getWidth(), mesh.getHeight());
@@ -494,56 +488,6 @@ public class AwtCanvasRenderer implements CanvasRenderer {
 
                 addRectPoly(builder, vertLeft, vertTop, vertRight, vertBottom, texCoordLeft, texCoordTop, texCoordRight, texCoordBottom);
             }
-        }
-    }
-
-    /**
-     * A key that identifies an entry in the texture cache. It contains the elements that affect the generation of mesh for texture rendering.
-     */
-    private static class TextureCacheKey {
-
-        private AssetUri assetUri;
-        private Vector2i textureSize;
-        private Vector2i areaSize;
-        private Border border;
-        private boolean tiled;
-        private float uw;
-        private float uh;
-        private float alpha;
-
-        public TextureCacheKey(AssetUri assetUri, Vector2i textureSize, Vector2i areaSize, Border border, boolean tiled, float uw, float uh, float alpha) {
-            this.assetUri = assetUri;
-            this.textureSize = new Vector2i(textureSize);
-            this.areaSize = new Vector2i(areaSize);
-            this.border = border;
-            this.tiled = tiled;
-            this.uw = uw;
-            this.uh = uh;
-            this.alpha = alpha;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof TextureCacheKey) {
-                TextureCacheKey other = (TextureCacheKey) obj;
-                return assetUri == other.assetUri
-                       && Objects.equals(textureSize, other.textureSize)
-                       && Objects.equals(areaSize, other.areaSize)
-                       && Objects.equals(border, other.border)
-                       && tiled == other.tiled
-                       && uw == other.uw
-                       && uh == other.uh
-                       && alpha == other.alpha;
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(assetUri, textureSize, areaSize, border, tiled, uw, uh, alpha);
         }
     }
 }
