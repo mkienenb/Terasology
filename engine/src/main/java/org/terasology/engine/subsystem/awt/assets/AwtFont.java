@@ -68,7 +68,7 @@ public class AwtFont extends BaseFont {
             int currentWidth = (int) stringBounds.getWidth();
             largestWidth = Math.max(largestWidth, currentWidth);
         }
-        
+
         return largestWidth;
     }
 
@@ -81,7 +81,7 @@ public class AwtFont extends BaseFont {
 
         if (c != null) {
             Rectangle2D stringBounds = fontMetrics.getStringBounds(Character.valueOf(c).toString(), g2);
-            return(int) stringBounds.getWidth();
+            return (int) stringBounds.getWidth();
         }
         return 0;
     }

@@ -33,7 +33,7 @@ public class BufferedImageBuilder {
     BufferedImage destinationBufferedImage;
     Vector2i sourceSize;
     Vector2i drawingSize;
-    
+
     public BufferedImageBuilder(BufferedImage source, Vector2i sourceSize, Rect2i drawingRegion, Vector2i drawingSize) {
         this.sourceBufferedImage = source;
         this.sourceSize = sourceSize;
@@ -48,12 +48,12 @@ public class BufferedImageBuilder {
     }
 
     public BufferedImageBuilder addSubTextureRegion(
-            float minX, float minY, float maxX, float maxY,
-            float texMinX, float texMinY, float texMaxX, float texMaxY) {
-        
-        intDrawImage((int) (minX * drawingSize.x),(int) (minY * drawingSize.y), (int) (maxX * drawingSize.x), (int)(maxY * drawingSize.y),
-                (int) (texMinX* sourceSize.x), (int)(texMinY * sourceSize.y), (int) (texMaxX* sourceSize.x), (int)(texMaxY * sourceSize.y));
-        
+                                                    float minX, float minY, float maxX, float maxY,
+                                                    float texMinX, float texMinY, float texMaxX, float texMaxY) {
+
+        intDrawImage((int) (minX * drawingSize.x), (int) (minY * drawingSize.y), (int) (maxX * drawingSize.x), (int) (maxY * drawingSize.y),
+                (int) (texMinX * sourceSize.x), (int) (texMinY * sourceSize.y), (int) (texMaxX * sourceSize.x), (int) (texMaxY * sourceSize.y));
+
         return this;
     }
 

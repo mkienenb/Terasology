@@ -190,8 +190,7 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
      * We might want to look at this at some point.
      * 
     */
-    private BufferedImage createCompatibleImage(BufferedImage image)
-    {
+    private BufferedImage createCompatibleImage(BufferedImage image) {
         //  worked for msteiger, just in case what we're doing below breaks it again
         //      BufferedImage bufferedImageArgb = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
