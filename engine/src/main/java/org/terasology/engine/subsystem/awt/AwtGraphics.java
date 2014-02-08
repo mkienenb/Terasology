@@ -42,6 +42,7 @@ import org.terasology.engine.subsystem.awt.renderer.AwtRenderingSubsystemFactory
 import org.terasology.input.InputSystem;
 import org.terasology.logic.manager.GUIManager;
 import org.terasology.logic.manager.GUIManagerHeadless;
+import org.terasology.logic.players.DebugControlSystem;
 import org.terasology.logic.players.MenuControlSystem;
 import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.ShaderManager;
@@ -220,5 +221,6 @@ public class AwtGraphics implements EngineSubsystem {
     @Override
     public void registerSystems(ComponentSystemManager componentSystemManager) {
         componentSystemManager.register(new MenuControlSystem(), "engine:MenuControlSystem");
+        componentSystemManager.register(new DebugControlSystem(), "engine:DebugControlSystem");
     }
 }
