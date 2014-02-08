@@ -261,6 +261,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
     public void drawTexture(TextureRegion textureRegion, Color color, ScaleMode mode,
                             Rect2i absoluteRegion,
                             float ux, float uy, float uw, float uh, float alpha) {
+        // TODO: I think we might want to crop at this point, like LwjglCanvasRender does
 
         //        vec4 pos = gl_Vertex;
         //        pos.xy *= scale;
@@ -355,6 +356,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
      */
     @Override
     public void drawTextureBordered(TextureRegion texture, Rect2i region, Border border, boolean tile, float ux, float uy, float uw, float uh, float alpha) {
+        // TODO: I think we might want to crop at this point, like LwjglCanvasRender does
         drawTextureBorderedWithoutUxUy(texture, region, border, tile, uw, uh, alpha);
     }
 
