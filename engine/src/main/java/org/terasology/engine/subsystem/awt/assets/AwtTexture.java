@@ -64,6 +64,7 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
     @Override
     public void reload(TextureData data) {
         this.textureData = data;
+        bufferedImageByParametersMap.clear();
     }
 
     @Override
