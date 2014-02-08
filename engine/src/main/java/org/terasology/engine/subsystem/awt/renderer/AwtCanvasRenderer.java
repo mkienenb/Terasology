@@ -35,6 +35,7 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
+import org.terasology.asset.AssetUri;
 import org.terasology.engine.subsystem.awt.assets.AwtFont;
 import org.terasology.engine.subsystem.awt.assets.AwtMaterial;
 import org.terasology.engine.subsystem.awt.assets.AwtTexture;
@@ -285,25 +286,25 @@ public class AwtCanvasRenderer implements CanvasRenderer {
 
         BufferedImage bufferedImage = awtTexture.getBufferedImage(texture.getWidth(), texture.getHeight(), alpha, color);
 
-        Rect2i textureArea2 = getSourceRegion(textureRegion, ux, uy, uw, uh);
-        Rect2i absoluteRegionOffsetAdjustment = getDestinationRegion(textureRegion, absoluteRegion, mode);
+        Rect2i sourceRegion = getSourceRegion(textureRegion, ux, uy, uw, uh);
+        Rect2i destinationRegion = getDestinationRegion(textureRegion, absoluteRegion, mode);
         switch (mode) {
             case SCALE_FILL:
-                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea2);
+                drawImageInternal(bufferedImage, destinationRegion, sourceRegion);
                 break;
             case SCALE_FIT:
-                drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea2);
+                drawImageInternal(bufferedImage, destinationRegion, sourceRegion);
                 break;
             case STRETCH:
-                drawImageInternal(bufferedImage, absoluteRegion, textureArea2);
+                drawImageInternal(bufferedImage, absoluteRegion, sourceRegion);
                 break;
             case TILED:
                 int xInc = absoluteRegion.width();
                 int yInc = absoluteRegion.height();
                 for (int x = absoluteRegion.minX(); x < xInc; x += xInc) {
                     for (int y = absoluteRegion.maxX(); y < yInc; y += yInc) {
-                        Rect2i absoluteRegionTileOffset = Rect2i.createFromMinAndSize(new Vector2i(x, y), textureArea2.size());
-                        drawImageInternal(bufferedImage, absoluteRegionTileOffset, textureArea2);
+                        Rect2i tileDestinationRegion = Rect2i.createFromMinAndSize(new Vector2i(x, y), sourceRegion.size());
+                        drawImageInternal(bufferedImage, tileDestinationRegion, sourceRegion);
                     }
                 }
                 break;
@@ -313,25 +314,18 @@ public class AwtCanvasRenderer implements CanvasRenderer {
     }
 
     private Rect2i getDestinationRegion(TextureRegion textureRegion,
-                                   Rect2i absoluteRegion,
-                                   ScaleMode mode) {
+                                        Rect2i absoluteRegion,
+                                        ScaleMode mode) {
 
         Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
 
-        //        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(
-        //                new Vector2i((int)(absoluteRegion.minX() * scale.x),
-        //                        (int)(absoluteRegion.minY() * scale.y)),
-        //                absoluteRegion.size());
+        Vector2i scaleAdjustment = new Vector2i(Math.round(scale.x), Math.round(scale.y));
+        Vector2i offsetAdjustment = new Vector2i(Math.round(absoluteRegion.minX() + 0.5f * (absoluteRegion.width() - scale.x)),
+                Math.round(absoluteRegion.minY() + 0.5f * (absoluteRegion.height() - scale.y)));
 
-        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(absoluteRegion.min(),
-                new Vector2i(Math.round(scale.x), Math.round(scale.y)));
+        Rect2i totalAdjustment = Rect2i.createFromMinAndSize(offsetAdjustment, scaleAdjustment);
 
-        Rect2i absoluteRegionOffsetAdjustment = Rect2i.createFromMinAndSize(
-                new Vector2i(Math.round(absoluteRegionScaleAdjustment.minX() + 0.5f * (absoluteRegionScaleAdjustment.width() - scale.x)),
-                        Math.round(absoluteRegionScaleAdjustment.minY() + 0.5f * (absoluteRegionScaleAdjustment.height() - scale.y))),
-                absoluteRegionScaleAdjustment.size());
-        
-        return absoluteRegionOffsetAdjustment;
+        return totalAdjustment;
     }
 
     private Rect2i getSourceRegion(TextureRegion textureRegion,
@@ -343,7 +337,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
                 Math.round(pixelRegion.minY() + uy * pixelRegion.height()),
                 Math.round(uw * pixelRegion.width()),
                 Math.round(uh * pixelRegion.height()));
-        
+
         return textureArea2;
     }
 
@@ -361,9 +355,16 @@ public class AwtCanvasRenderer implements CanvasRenderer {
      */
     @Override
     public void drawTextureBordered(TextureRegion texture, Rect2i region, Border border, boolean tile, float ux, float uy, float uw, float uh, float alpha) {
+        drawTextureBorderedWithoutUxUy(texture, region, border, tile, uw, uh, alpha);
+    }
+
+    /**
+     * It's unclear why I don't need to use ux/uy
+     */
+    private void drawTextureBorderedWithoutUxUy(TextureRegion texture, Rect2i region, Border border, boolean tile, float uw, float uh, float alpha) {
         Vector2i textureSize = new Vector2i(TeraMath.ceilToInt(texture.getWidth() * uw), TeraMath.ceilToInt(texture.getHeight() * uh));
 
-        TextureCacheKey key = new TextureCacheKey(textureSize, region.size(), border, tile);
+        TextureCacheKey key = new TextureCacheKey(texture.getTexture().getURI(), textureSize, region.size(), border, tile, uw, uh, alpha);
         BufferedImage mesh = cachedTextures.get(key);
         if (mesh == null) {
 
@@ -450,12 +451,12 @@ public class AwtCanvasRenderer implements CanvasRenderer {
                 }
             }
 
-            BufferedImage bufferedImage = builder.build();
-            cachedTextures.put(key, bufferedImage);
-
-            Rect2i sourceRegion = Rect2i.createFromMinAndSize(new Vector2i(), region.size());
-            drawImageInternal(bufferedImage, region, sourceRegion);
+            mesh = builder.build();
+            cachedTextures.put(key, mesh);
         }
+
+        Rect2i sourceRegion = Rect2i.createFromMinAndSize(mesh.getMinX(), mesh.getMinY(), mesh.getWidth(), mesh.getHeight());
+        drawImageInternal(mesh, region, sourceRegion);
     }
 
     private void addRectPoly(BufferedImageBuilder builder,
@@ -499,23 +500,24 @@ public class AwtCanvasRenderer implements CanvasRenderer {
      */
     private static class TextureCacheKey {
 
+        private AssetUri assetUri;
         private Vector2i textureSize;
         private Vector2i areaSize;
         private Border border;
         private boolean tiled;
+        private float uw;
+        private float uh;
+        private float alpha;
 
-        public TextureCacheKey(Vector2i textureSize, Vector2i areaSize) {
-            this.textureSize = new Vector2i(textureSize);
-            this.areaSize = new Vector2i(areaSize);
-            this.border = Border.ZERO;
-            this.tiled = true;
-        }
-
-        public TextureCacheKey(Vector2i textureSize, Vector2i areaSize, Border border, boolean tiled) {
+        public TextureCacheKey(AssetUri assetUri, Vector2i textureSize, Vector2i areaSize, Border border, boolean tiled, float uw, float uh, float alpha) {
+            this.assetUri = assetUri;
             this.textureSize = new Vector2i(textureSize);
             this.areaSize = new Vector2i(areaSize);
             this.border = border;
             this.tiled = tiled;
+            this.uw = uw;
+            this.uh = uh;
+            this.alpha = alpha;
         }
 
         @Override
@@ -525,15 +527,21 @@ public class AwtCanvasRenderer implements CanvasRenderer {
             }
             if (obj instanceof TextureCacheKey) {
                 TextureCacheKey other = (TextureCacheKey) obj;
-                return Objects.equals(textureSize, other.textureSize) && Objects.equals(areaSize, other.areaSize)
-                       && Objects.equals(border, other.border) && tiled == other.tiled;
+                return assetUri == other.assetUri
+                       && Objects.equals(textureSize, other.textureSize)
+                       && Objects.equals(areaSize, other.areaSize)
+                       && Objects.equals(border, other.border)
+                       && tiled == other.tiled
+                       && uw == other.uw
+                       && uh == other.uh
+                       && alpha == other.alpha;
             }
             return false;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(textureSize, areaSize, border, tiled);
+            return Objects.hash(assetUri, textureSize, areaSize, border, tiled, uw, uh, alpha);
         }
     }
 }
