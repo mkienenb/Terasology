@@ -178,11 +178,13 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         for (int index = 0; index < textArray.length; index++) {
             String text = textArray[index];
 
+            AttributedString attstring;
             if (text.length() == 0) {
-                return (float) yInt;
+                attstring = new AttributedString(" ");
+            } else {
+                attstring = new AttributedString(text);
             }
 
-            AttributedString attstring = new AttributedString(text);
             attstring.addAttribute(TextAttribute.FONT, font);
             AttributedCharacterIterator paragraph = attstring.getIterator();
             int paragraphStart = paragraph.getBeginIndex();
