@@ -164,7 +164,7 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
                     raster, false, null);
 
             BufferedImage compatibleBufferedImage = createCompatibleImage(bufferedImage);
-            
+
             bufferedImageByParametersMap.put(key, compatibleBufferedImage);
         }
 
@@ -192,15 +192,15 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
     */
     private BufferedImage createCompatibleImage(BufferedImage image)
     {
-//  worked for msteiger, just in case what we're doing below breaks it again
-//      BufferedImage bufferedImageArgb = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        //  worked for msteiger, just in case what we're doing below breaks it again
+        //      BufferedImage bufferedImageArgb = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
         BufferedImage newImage = gc.createCompatibleImage(
-            image.getWidth(), 
-            image.getHeight(), 
-            Transparency.TRANSLUCENT);
+                image.getWidth(),
+                image.getHeight(),
+                Transparency.TRANSLUCENT);
 
         Graphics2D g = newImage.createGraphics();
         g.drawImage(image, 0, 0, null);
@@ -208,7 +208,7 @@ public class AwtTexture extends AbstractAsset<TextureData> implements Texture {
 
         return newImage;
     }
-    
+
     public class IntBufferBackedDataBufferAlphaAndColor extends DataBuffer {
         private final IntBuffer buf;
         private final float red;

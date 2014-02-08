@@ -18,7 +18,6 @@ package org.terasology.engine.subsystem.awt.renderer;
 import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
@@ -28,6 +27,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.JFrame;
 import javax.vecmath.Quat4f;
@@ -38,8 +39,10 @@ import org.terasology.engine.subsystem.awt.assets.AwtFont;
 import org.terasology.engine.subsystem.awt.assets.AwtMaterial;
 import org.terasology.engine.subsystem.awt.assets.AwtTexture;
 import org.terasology.engine.subsystem.awt.devices.AwtDisplayDevice;
+import org.terasology.math.Border;
 import org.terasology.math.Rect2f;
 import org.terasology.math.Rect2i;
+import org.terasology.math.TeraMath;
 import org.terasology.math.Vector2i;
 import org.terasology.rendering.assets.font.Font;
 import org.terasology.rendering.assets.material.Material;
@@ -52,10 +55,14 @@ import org.terasology.rendering.nui.ScaleMode;
 import org.terasology.rendering.nui.VerticalAlign;
 import org.terasology.rendering.nui.internal.CanvasRenderer;
 
+import com.google.common.collect.Maps;
+
 /**
  * @author Immortius
  */
 public class AwtCanvasRenderer implements CanvasRenderer {
+
+    private Map<TextureCacheKey, BufferedImage> cachedTextures = Maps.newLinkedHashMap();
 
     private JFrame window;
 
@@ -106,7 +113,7 @@ public class AwtCanvasRenderer implements CanvasRenderer {
     @Override
     public void drawLine(int sx, int sy, int ex, int ey, Color color) {
         drawGraphics.setColor(getAwtColor(color));
-        Graphics2D g2 = (Graphics2D)drawGraphics;
+        Graphics2D g2 = (Graphics2D) drawGraphics;
         Stroke originalStroke = g2.getStroke();
         g2.setStroke(new BasicStroke(2));
         drawGraphics.drawLine(sx, sy, ex, ey);
@@ -273,35 +280,13 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         //      textureMat.setFloat4("color", color.rf(), color.gf(), color.bf(), color.af() * alpha);
         //      textureMat.bindTextures();
 
-        Rect2i pixelRegion = textureRegion.getPixelRegion();
-
         Texture texture = textureRegion.getTexture();
         AwtTexture awtTexture = (AwtTexture) texture;
 
         BufferedImage bufferedImage = awtTexture.getBufferedImage(texture.getWidth(), texture.getHeight(), alpha, color);
 
-        Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
-
-        Rect2i textureArea2 = Rect2i.createFromMinAndSize(
-                Math.round(pixelRegion.minX() + ux * pixelRegion.width()),
-                Math.round(pixelRegion.minY() + uy * pixelRegion.height()),
-                Math.round(uw * pixelRegion.width()),
-                Math.round(uh * pixelRegion.height()));
-
-
-        //        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(
-        //                new Vector2i((int)(absoluteRegion.minX() * scale.x),
-        //                        (int)(absoluteRegion.minY() * scale.y)),
-        //                absoluteRegion.size());
-
-        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(absoluteRegion.min(),
-                new Vector2i(Math.round(scale.x), Math.round(scale.y)));
-
-        Rect2i absoluteRegionOffsetAdjustment = Rect2i.createFromMinAndSize(
-                new Vector2i(Math.round(absoluteRegionScaleAdjustment.minX() + 0.5f * (absoluteRegionScaleAdjustment.width() - scale.x)),
-                        Math.round(absoluteRegionScaleAdjustment.minY() + 0.5f * (absoluteRegionScaleAdjustment.height() - scale.y))),
-                absoluteRegionScaleAdjustment.size());
-
+        Rect2i textureArea2 = getSourceRegion(textureRegion, ux, uy, uw, uh);
+        Rect2i absoluteRegionOffsetAdjustment = getDestinationRegion(textureRegion, absoluteRegion, mode);
         switch (mode) {
             case SCALE_FILL:
                 drawImageInternal(bufferedImage, absoluteRegionOffsetAdjustment, textureArea2);
@@ -327,6 +312,41 @@ public class AwtCanvasRenderer implements CanvasRenderer {
         }
     }
 
+    private Rect2i getDestinationRegion(TextureRegion textureRegion,
+                                   Rect2i absoluteRegion,
+                                   ScaleMode mode) {
+
+        Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
+
+        //        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(
+        //                new Vector2i((int)(absoluteRegion.minX() * scale.x),
+        //                        (int)(absoluteRegion.minY() * scale.y)),
+        //                absoluteRegion.size());
+
+        Rect2i absoluteRegionScaleAdjustment = Rect2i.createFromMinAndSize(absoluteRegion.min(),
+                new Vector2i(Math.round(scale.x), Math.round(scale.y)));
+
+        Rect2i absoluteRegionOffsetAdjustment = Rect2i.createFromMinAndSize(
+                new Vector2i(Math.round(absoluteRegionScaleAdjustment.minX() + 0.5f * (absoluteRegionScaleAdjustment.width() - scale.x)),
+                        Math.round(absoluteRegionScaleAdjustment.minY() + 0.5f * (absoluteRegionScaleAdjustment.height() - scale.y))),
+                absoluteRegionScaleAdjustment.size());
+        
+        return absoluteRegionOffsetAdjustment;
+    }
+
+    private Rect2i getSourceRegion(TextureRegion textureRegion,
+                                   float ux, float uy, float uw, float uh) {
+        Rect2i pixelRegion = textureRegion.getPixelRegion();
+
+        Rect2i textureArea2 = Rect2i.createFromMinAndSize(
+                Math.round(pixelRegion.minX() + ux * pixelRegion.width()),
+                Math.round(pixelRegion.minY() + uy * pixelRegion.height()),
+                Math.round(uw * pixelRegion.width()),
+                Math.round(uh * pixelRegion.height()));
+        
+        return textureArea2;
+    }
+
     private void drawImageInternal(BufferedImage bufferedImage, Rect2i destinationRegion, Rect2i sourceRegion) {
 
         ImageObserver observer = null;
@@ -336,4 +356,184 @@ public class AwtCanvasRenderer implements CanvasRenderer {
                 observer);
     }
 
+    /**
+     * This breaks the texture up into 9 pieces like a tic-tac-toe board into corners, edges, and center, and then tiles or scales appropriately only in its section
+     */
+    @Override
+    public void drawTextureBordered(TextureRegion texture, Rect2i region, Border border, boolean tile, float ux, float uy, float uw, float uh, float alpha) {
+        Vector2i textureSize = new Vector2i(TeraMath.ceilToInt(texture.getWidth() * uw), TeraMath.ceilToInt(texture.getHeight() * uh));
+
+        TextureCacheKey key = new TextureCacheKey(textureSize, region.size(), border, tile);
+        BufferedImage mesh = cachedTextures.get(key);
+        if (mesh == null) {
+
+            Texture textureRegionTexture = texture.getTexture();
+            AwtTexture awtTexture = (AwtTexture) textureRegionTexture;
+
+            Color color = Color.WHITE;
+            BufferedImage source = awtTexture.getBufferedImage(textureRegionTexture.getWidth(), textureRegionTexture.getHeight(), alpha, color);
+
+            BufferedImageBuilder builder = new BufferedImageBuilder(source, textureSize, region, region.size());
+
+            float topTex = (float) border.getTop() / textureSize.y;
+            float leftTex = (float) border.getLeft() / textureSize.x;
+            float bottomTex = 1f - (float) border.getBottom() / textureSize.y;
+            float rightTex = 1f - (float) border.getRight() / textureSize.x;
+            int centerHoriz = region.width() - border.getTotalWidth();
+            int centerVert = region.height() - border.getTotalHeight();
+
+            float top = (float) border.getTop() / region.height();
+            float left = (float) border.getLeft() / region.width();
+            float bottom = 1f - (float) border.getBottom() / region.height();
+            float right = 1f - (float) border.getRight() / region.width();
+
+            if (border.getTop() != 0) {
+                if (border.getLeft() != 0) {
+                    addRectPoly(builder, 0, 0, left, top, 0, 0, leftTex, topTex);
+                }
+                if (tile) {
+                    addTiles(builder, Rect2i.createFromMinAndSize(border.getLeft(), 0, centerHoriz, border.getTop()), Rect2f.createFromMinAndMax(left, 0, right, top),
+                            new Vector2i(textureSize.x - border.getTotalWidth(), border.getTop()),
+                            Rect2f.createFromMinAndMax(leftTex, 0, rightTex, topTex));
+                } else {
+                    addRectPoly(builder, left, 0, right, top, leftTex, 0, rightTex, topTex);
+                }
+                if (border.getRight() != 0) {
+                    addRectPoly(builder, right, 0, 1, top, rightTex, 0, 1, topTex);
+                }
+            }
+
+            if (border.getLeft() != 0) {
+                if (tile) {
+                    addTiles(builder, Rect2i.createFromMinAndSize(0, border.getTop(), border.getLeft(), centerVert), Rect2f.createFromMinAndMax(0, top, left, bottom),
+                            new Vector2i(border.getLeft(), textureSize.y - border.getTotalHeight()),
+                            Rect2f.createFromMinAndMax(0, topTex, leftTex, bottomTex));
+                } else {
+                    addRectPoly(builder, 0, top, left, bottom, 0, topTex, leftTex, bottomTex);
+                }
+            }
+
+            if (tile) {
+                addTiles(builder, Rect2i.createFromMinAndSize(border.getLeft(), border.getTop(), centerHoriz, centerVert),
+                        Rect2f.createFromMinAndMax(left, top, right, bottom),
+                        new Vector2i(textureSize.x - border.getTotalWidth(), textureSize.y - border.getTotalHeight()),
+                        Rect2f.createFromMinAndMax(leftTex, topTex, rightTex, bottomTex));
+            } else {
+                addRectPoly(builder, left, top, right, bottom, leftTex, topTex, rightTex, bottomTex);
+            }
+
+            if (border.getRight() != 0) {
+                if (tile) {
+                    addTiles(builder, Rect2i.createFromMinAndSize(region.width() - border.getRight(), border.getTop(), border.getRight(), centerVert),
+                            Rect2f.createFromMinAndMax(right, top, 1, bottom),
+                            new Vector2i(border.getRight(), textureSize.y - border.getTotalHeight()),
+                            Rect2f.createFromMinAndMax(rightTex, topTex, 1, bottomTex));
+                } else {
+                    addRectPoly(builder, right, top, 1, bottom, rightTex, topTex, 1, bottomTex);
+                }
+            }
+
+            if (border.getBottom() != 0) {
+                if (border.getLeft() != 0) {
+                    addRectPoly(builder, 0, bottom, left, 1, 0, bottomTex, leftTex, 1);
+                }
+                if (tile) {
+                    addTiles(builder, Rect2i.createFromMinAndSize(border.getLeft(), region.height() - border.getBottom(), centerHoriz, border.getBottom()),
+                            Rect2f.createFromMinAndMax(left, bottom, right, 1),
+                            new Vector2i(textureSize.x - border.getTotalWidth(), border.getBottom()),
+                            Rect2f.createFromMinAndMax(leftTex, bottomTex, rightTex, 1));
+                } else {
+                    addRectPoly(builder, left, bottom, right, 1, leftTex, bottomTex, rightTex, 1);
+                }
+                if (border.getRight() != 0) {
+                    addRectPoly(builder, right, bottom, 1, 1, rightTex, bottomTex, 1, 1);
+                }
+            }
+
+            BufferedImage bufferedImage = builder.build();
+            cachedTextures.put(key, bufferedImage);
+
+            Rect2i sourceRegion = Rect2i.createFromMinAndSize(new Vector2i(), region.size());
+            drawImageInternal(bufferedImage, region, sourceRegion);
+        }
+    }
+
+    private void addRectPoly(BufferedImageBuilder builder,
+                             float minX, float minY, float maxX, float maxY,
+                             float texMinX, float texMinY, float texMaxX, float texMaxY) {
+        builder.addSubTextureRegion(
+                minX, minY, maxX, maxY,
+                texMinX, texMinY, texMaxX, texMaxY);
+    }
+
+    private void addTiles(BufferedImageBuilder builder, Rect2i drawRegion, Rect2f subDrawRegion, Vector2i textureSize, Rect2f subTextureRegion) {
+        int tileW = textureSize.x;
+        int tileH = textureSize.y;
+        int horizTiles = TeraMath.fastAbs((drawRegion.width() - 1) / tileW) + 1;
+        int vertTiles = TeraMath.fastAbs((drawRegion.height() - 1) / tileH) + 1;
+
+        int offsetX = (drawRegion.width() - horizTiles * tileW) / 2;
+        int offsetY = (drawRegion.height() - vertTiles * tileH) / 2;
+
+        for (int tileY = 0; tileY < vertTiles; tileY++) {
+            for (int tileX = 0; tileX < horizTiles; tileX++) {
+                int left = offsetX + tileW * tileX;
+                int top = offsetY + tileH * tileY;
+
+                float vertLeft = subDrawRegion.minX() + subDrawRegion.width() * Math.max((float) left / drawRegion.width(), 0);
+                float vertTop = subDrawRegion.minY() + subDrawRegion.height() * Math.max((float) top / drawRegion.height(), 0);
+                float vertRight = subDrawRegion.minX() + subDrawRegion.width() * Math.min((float) (left + tileW) / drawRegion.width(), 1);
+                float vertBottom = subDrawRegion.minY() + subDrawRegion.height() * Math.min((float) (top + tileH) / drawRegion.height(), 1);
+                float texCoordLeft = subTextureRegion.minX() + subTextureRegion.width() * (Math.max(left, 0) - left) / tileW;
+                float texCoordTop = subTextureRegion.minY() + subTextureRegion.height() * (Math.max(top, 0) - top) / tileH;
+                float texCoordRight = subTextureRegion.minX() + subTextureRegion.width() * (Math.min(left + tileW, drawRegion.width()) - left) / tileW;
+                float texCoordBottom = subTextureRegion.minY() + subTextureRegion.height() * (Math.min(top + tileH, drawRegion.height()) - top) / tileH;
+
+                addRectPoly(builder, vertLeft, vertTop, vertRight, vertBottom, texCoordLeft, texCoordTop, texCoordRight, texCoordBottom);
+            }
+        }
+    }
+
+    /**
+     * A key that identifies an entry in the texture cache. It contains the elements that affect the generation of mesh for texture rendering.
+     */
+    private static class TextureCacheKey {
+
+        private Vector2i textureSize;
+        private Vector2i areaSize;
+        private Border border;
+        private boolean tiled;
+
+        public TextureCacheKey(Vector2i textureSize, Vector2i areaSize) {
+            this.textureSize = new Vector2i(textureSize);
+            this.areaSize = new Vector2i(areaSize);
+            this.border = Border.ZERO;
+            this.tiled = true;
+        }
+
+        public TextureCacheKey(Vector2i textureSize, Vector2i areaSize, Border border, boolean tiled) {
+            this.textureSize = new Vector2i(textureSize);
+            this.areaSize = new Vector2i(areaSize);
+            this.border = border;
+            this.tiled = tiled;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof TextureCacheKey) {
+                TextureCacheKey other = (TextureCacheKey) obj;
+                return Objects.equals(textureSize, other.textureSize) && Objects.equals(areaSize, other.areaSize)
+                       && Objects.equals(border, other.border) && tiled == other.tiled;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(textureSize, areaSize, border, tiled);
+        }
+    }
 }
