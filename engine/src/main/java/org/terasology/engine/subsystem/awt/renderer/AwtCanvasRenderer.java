@@ -33,6 +33,7 @@ import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
+import org.terasology.asset.AssetUri;
 import org.terasology.engine.subsystem.awt.assets.AwtFont;
 import org.terasology.engine.subsystem.awt.assets.AwtMaterial;
 import org.terasology.engine.subsystem.awt.assets.AwtTexture;
@@ -43,9 +44,11 @@ import org.terasology.math.Rect2f;
 import org.terasology.math.Rect2i;
 import org.terasology.math.TeraMath;
 import org.terasology.math.Vector2i;
+import org.terasology.registry.CoreRegistry;
 import org.terasology.rendering.assets.font.Font;
 import org.terasology.rendering.assets.material.Material;
 import org.terasology.rendering.assets.mesh.Mesh;
+import org.terasology.rendering.assets.texture.BasicTextureRegion;
 import org.terasology.rendering.assets.texture.Texture;
 import org.terasology.rendering.assets.texture.TextureRegion;
 import org.terasology.rendering.nui.Color;
@@ -53,6 +56,13 @@ import org.terasology.rendering.nui.HorizontalAlign;
 import org.terasology.rendering.nui.ScaleMode;
 import org.terasology.rendering.nui.VerticalAlign;
 import org.terasology.rendering.nui.internal.CanvasRenderer;
+import org.terasology.world.block.Block;
+import org.terasology.world.block.BlockAppearance;
+import org.terasology.world.block.BlockManager;
+import org.terasology.world.block.BlockPart;
+import org.terasology.world.block.BlockUri;
+import org.terasology.world.block.family.BlockFamily;
+import org.terasology.world.block.loader.WorldAtlas;
 
 /**
  * @author mkienenb
@@ -88,11 +98,46 @@ public class AwtCanvasRenderer implements CanvasRenderer {
             throw new RuntimeException("unsupported");
         }
 
+        Vector2f textureAtlasPos;
+
+        BlockManager blockManager = CoreRegistry.get(BlockManager.class);
+        AssetUri meshUri = mesh.getURI();
+        String assetName = meshUri.getAssetName();
+        if (assetName.contains(".")) {
+            String familyName = assetName.substring(0, assetName.indexOf('.'));
+
+            BlockUri blockUri = new BlockUri(meshUri.getModuleName(), familyName);
+            BlockFamily blockFamily = blockManager.getBlockFamily(blockUri); // mesh:Core:Torch.TOP
+            Block archetypeBlock = blockFamily.getArchetypeBlock();
+            BlockAppearance primaryAppearance = archetypeBlock.getPrimaryAppearance();
+
+            String blockPartName = assetName.substring(assetName.indexOf('.') + 1);
+            BlockPart blockPart = BlockPart.valueOf(blockPartName);
+
+            textureAtlasPos = primaryAppearance.getTextureAtlasPos(blockPart);
+        } else {
+            String familyName = assetName;
+            BlockUri blockUri = new BlockUri(meshUri.getModuleName(), familyName);
+
+            BlockFamily blockFamily = blockManager.getBlockFamily(blockUri); // mesh:Core:Torch.TOP
+            Block archetypeBlock = blockFamily.getArchetypeBlock();
+            BlockAppearance primaryAppearance = archetypeBlock.getPrimaryAppearance();
+
+            BlockPart blockPart = BlockPart.FRONT; // assume it doesn't matter
+            textureAtlasPos = primaryAppearance.getTextureAtlasPos(blockPart);
+        }
+
+        WorldAtlas worldAtlas = CoreRegistry.get(WorldAtlas.class);
+        float tileSize = worldAtlas.getRelativeTileSize();
+
         float ux = 0f;
         float uy = 0f;
         float uw = 1f;
         float uh = 1f;
-        drawTexture(texture, Color.WHITE, ScaleMode.STRETCH, drawRegion, ux, uy, uw, uh, alpha);
+
+        TextureRegion textureRegion = new BasicTextureRegion(texture, textureAtlasPos, new Vector2f(tileSize, tileSize));
+        drawTexture(textureRegion, Color.WHITE, ScaleMode.STRETCH, drawRegion, ux, uy, uw, uh, alpha);
+        return;
     }
 
     @Override
@@ -314,7 +359,13 @@ public class AwtCanvasRenderer implements CanvasRenderer {
                                         Rect2i absoluteRegion,
                                         ScaleMode mode) {
 
-        Vector2f scale = mode.scaleForRegion(absoluteRegion, textureRegion.getWidth(), textureRegion.getHeight());
+        return getDestinationRegion(textureRegion.getWidth(), textureRegion.getHeight(), absoluteRegion, mode);
+    }
+
+    private Rect2i getDestinationRegion(int width, int height,
+                                        Rect2i absoluteRegion,
+                                        ScaleMode mode) {
+        Vector2f scale = mode.scaleForRegion(absoluteRegion, width, height);
 
         Vector2i scaleAdjustment = new Vector2i(Math.round(scale.x), Math.round(scale.y));
         Vector2i offsetAdjustment = new Vector2i(Math.round(absoluteRegion.minX() + 0.5f * (absoluteRegion.width() - scale.x)),
