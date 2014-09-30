@@ -15,7 +15,6 @@
  */
 package org.terasology.rendering.techne;
 
-import gnu.trove.iterator.TFloatIterator;
 import gnu.trove.list.TFloatList;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TFloatArrayList;
@@ -25,6 +24,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.vecmath.Vector3f;
 
 import org.eaxy.Document;
 import org.eaxy.Element;
@@ -37,6 +38,36 @@ import org.terasology.rendering.assets.skeletalmesh.SkeletalMeshDataBuilder;
 /**
  * Importer for Techne model files.
  * 
+ * http://schwarzeszeux.tumblr.com/post/13854104445/minecraft-modeling-tutorial-part-1-of-x
+ * The upper box is at origin (0, 0, 0), the lower one directly on the ground (0, 23, 0).
+ * 
+ * mlk: (Note that a block is not used directly in these models -- just for comparison.)
+ * 
+ * A block measures 16 x 16 x 16 pixels which translates to real 1m x 1m x 1m.
+ * 
+ * new ModelRenderer(this, 18, 4); will create us a new instance of ModelRenderer,
+ *   you pass an instance of your model-class as first argument, texture-offset-X as second
+ *   and texture-offset-Y as third.
+ * 
+ * addBox takes 7 arguments, in order: offsetX, offsetY, offsetZ, sizeX, sizeY, sizeZ and
+ *   extension. I’ll explain what “offset” does (compared to “position”
+ *   as set by “setRotationPoint”) later and we can ignore “extension” for now.
+ * 
+ * setRotationPoint will set the position of this box, the rotation-point (or anchor-point)
+ *   is the point in space around which the model will rotate.
+ * 
+ * To rotate a box you use the public fields rotateAngleX-Z.
+ *   Let’s say we want the tail to be rotated by -45°, as shown in the above image.
+ *   It’s important to note that rotateAngleX-Z take radians. 360° == 2pi in radians,
+ *   a quick calculation of pi/180 * -45 gives us -0.7854 which means that we end up with.
+ *   
+ * From TheyCallMeDanger:
+ *  +x is to the right.
+ *  +z goes back away.
+ *  +y goes down!
+ *  
+ *  mlk: (Need to negate y coordinate to match block coordinate system)
+ *  
  * @author mkienenb@gmail.com
  */
 
@@ -84,8 +115,8 @@ public class TechneXmlLoader {
 
         // unknown yet what the default scale is
         unitsPerMeter = 0.05d;
-        boolean yUp = false;
-        boolean zUp = true;
+        boolean yUp = true;
+        boolean zUp = false;
         boolean xUp = false;
 
         ElementSet shapeSet = rootElement.find("Models", "Model", "Geometry", "Shape");
@@ -98,23 +129,12 @@ public class TechneXmlLoader {
                 throw new TechneParseException("Found unsupported " + shapeType + " shape type for shape name=" + shape.name());
             }
 
-            ElementSet offsetElementSet = shape.find("Offset");
-            if (1 != offsetElementSet.size()) {
-                throw new TechneParseException("Found multiple offset asset values for shape name=" + shape.name());
-            }
-            Element offsetElement = offsetElementSet.first();
-            String offsetString = offsetElement.text();
-            String[] offsetArray = getItemsInString(offsetString, ",");
-            if (offsetArray.length != 3) {
-                throw new TechneParseException("Did not find three coordinates for offset  " + offsetString + " for shape name=" + shape.name());
-            }
-
             ElementSet positionElementSet = shape.find("Position");
             if (1 != positionElementSet.size()) {
                 throw new TechneParseException("Found multiple position asset values for shape name=" + shape.name());
             }
             Element positionElement = positionElementSet.first();
-            String positionString = offsetElement.text();
+            String positionString = positionElement.text();
             String[] positionArray = getItemsInString(positionString, ",");
             if (positionArray.length != 3) {
                 throw new TechneParseException("Did not find three coordinates for position  " + positionString + " for shape name=" + shape.name());
@@ -153,6 +173,17 @@ public class TechneXmlLoader {
                 throw new TechneParseException("Did not find two coordinates for Texture Offset  " + textureOffsetString + " for shape name=" + shape.name());
             }
 
+            ElementSet offsetElementSet = shape.find("Offset");
+            if (1 != offsetElementSet.size()) {
+                throw new TechneParseException("Found multiple offset asset values for shape name=" + shape.name());
+            }
+            Element offsetElement = offsetElementSet.first();
+            String offsetString = offsetElement.text();
+            String[] offsetArray = getItemsInString(offsetString, ",");
+            if (offsetArray.length != 3) {
+                throw new TechneParseException("Did not find three coordinates for offset  " + offsetString + " for shape name=" + shape.name());
+            }
+
             ElementSet isMirroredElementSet = shape.find("IsMirrored");
             if (1 != isMirroredElementSet.size()) {
                 throw new TechneParseException("Found multiple isMirrored asset values for shape name=" + shape.name());
@@ -177,7 +208,7 @@ public class TechneXmlLoader {
             float sizeY = Float.parseFloat(sizeArray[1]);
             float sizeZ = Float.parseFloat(sizeArray[2]);
             Vector3f sizeVector = new Vector3f(sizeX, sizeY, sizeZ);
-            
+
             float rotationX = Float.parseFloat(rotationArray[0]);
             float rotationY = Float.parseFloat(rotationArray[1]);
             float rotationZ = Float.parseFloat(rotationArray[2]);
@@ -189,19 +220,33 @@ public class TechneXmlLoader {
             float offsetZ = Float.parseFloat(offsetArray[2]);
             Vector3f offsetVector = new Vector3f(offsetX, offsetY, offsetZ);
             
+            int vertexCountBefore = vertices.size();
             
-            Box box = new Box(positionVector, sizeVector);
+            // divide by 2 for extent
+            Box box = new Box(positionVector, sizeX * 0.5f, sizeY * 0.5f, sizeZ * 0.5f);
             // TODO: scale
             // TODO: rotate
             // TODO: mirror
             
-            box.addMeshData(indices, vertices, normals);
-        }
-        
-        // for now, fake color vertexes until we figure out textures
-        int colorsToCreate = vertices.size() * 4 / 3;
-        for (int i = 0; i < colorsToCreate; i++) {
-            colors.add(0.5f);
+            box.addMeshData(indices, vertices, normals, rotationVector, offsetVector);
+            
+            int vertexCountAfter = vertices.size();
+            int newVertexTriplets = vertexCountAfter - vertexCountBefore;
+
+            // for now, fake color vertexes until we figure out textures
+            float redColor = (float)Math.random();
+            float greenColor = (float)Math.random();
+            float blueColor = (float)Math.random();
+            
+            // From when we created all colors after all parts of the model were done.
+            // int colorsToCreate = vertices.size() / 3;
+            int colorsToCreate = newVertexTriplets / 3;
+            for (int i = 0; i < colorsToCreate; i++) {
+                colors.add(redColor);
+                colors.add(greenColor);
+                colors.add(blueColor);
+                colors.add(1.0f);
+            }
         }
     }
 

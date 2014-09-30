@@ -48,7 +48,7 @@ import java.io.IOException;
  */
 public abstract class AbstractBox {
 
-    public final Vector3f center = new Vector3f(0f, 0f, 0f);
+    public final JME_Vector3f center = new JME_Vector3f(0f, 0f, 0f);
 
     public float xExtent, yExtent, zExtent;
     
@@ -61,13 +61,13 @@ public abstract class AbstractBox {
      *
      * @return a newly created array of vertex vectors.
      */
-    protected final Vector3f[] computeVertices() {
-        Vector3f[] axes = {
-                Vector3f.UNIT_X.mult(xExtent),
-                Vector3f.UNIT_Y.mult(yExtent),
-                Vector3f.UNIT_Z.mult(zExtent)
+    protected final JME_Vector3f[] computeVertices() {
+        JME_Vector3f[] axes = {
+                JME_Vector3f.UNIT_X.mult(xExtent),
+                JME_Vector3f.UNIT_Y.mult(yExtent),
+                JME_Vector3f.UNIT_Z.mult(zExtent)
         };
-        return new Vector3f[] {
+        return new JME_Vector3f[] {
                 center.subtract(axes[0]).subtractLocal(axes[1]).subtractLocal(axes[2]),
                 center.add(axes[0]).subtractLocal(axes[1]).subtractLocal(axes[2]),
                 center.add(axes[0]).addLocal(axes[1]).subtractLocal(axes[2]),
@@ -107,7 +107,7 @@ public abstract class AbstractBox {
     /** 
      * Get the center point of this box. 
      */
-    public final Vector3f getCenter() {
+    public final JME_Vector3f getCenter() {
         return center;
     }
 
@@ -156,7 +156,7 @@ public abstract class AbstractBox {
      * @param y the y extent of the box, in each directions.
      * @param z the z extent of the box, in each directions.
      */
-    public final void updateGeometry(Vector3f center, float x, float y, float z) {
+    public final void updateGeometry(JME_Vector3f center, float x, float y, float z) {
         if (center != null) {this.center.set(center); }
         this.xExtent = x;
         this.yExtent = y;
@@ -173,7 +173,7 @@ public abstract class AbstractBox {
      * @param minPoint the new minimum point of the box.
      * @param maxPoint the new maximum point of the box.
      */
-    public final void updateGeometry(Vector3f minPoint, Vector3f maxPoint) {
+    public final void updateGeometry(JME_Vector3f minPoint, JME_Vector3f maxPoint) {
         center.set(maxPoint).addLocal(minPoint).multLocal(0.5f);
         float x = maxPoint.x - center.x;
         float y = maxPoint.y - center.y;

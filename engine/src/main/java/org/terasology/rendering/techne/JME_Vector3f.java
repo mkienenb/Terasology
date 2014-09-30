@@ -48,23 +48,23 @@ import java.util.logging.Logger;
  * @author Mark Powell
  * @author Joshua Slack
  */
-public final class Vector3f {
+public final class JME_Vector3f {
 
     static final long serialVersionUID = 1;
     
-    private static final Logger logger = Logger.getLogger(Vector3f.class.getName());
+    private static final Logger logger = Logger.getLogger(JME_Vector3f.class.getName());
 
-    public final static Vector3f ZERO = new Vector3f(0, 0, 0);
-    public final static Vector3f NAN = new Vector3f(Float.NaN, Float.NaN, Float.NaN);
-    public final static Vector3f UNIT_X = new Vector3f(1, 0, 0);
-    public final static Vector3f UNIT_Y = new Vector3f(0, 1, 0);
-    public final static Vector3f UNIT_Z = new Vector3f(0, 0, 1);
-    public final static Vector3f UNIT_XYZ = new Vector3f(1, 1, 1);
-    public final static Vector3f POSITIVE_INFINITY = new Vector3f(
+    public final static JME_Vector3f ZERO = new JME_Vector3f(0, 0, 0);
+    public final static JME_Vector3f NAN = new JME_Vector3f(Float.NaN, Float.NaN, Float.NaN);
+    public final static JME_Vector3f UNIT_X = new JME_Vector3f(1, 0, 0);
+    public final static JME_Vector3f UNIT_Y = new JME_Vector3f(0, 1, 0);
+    public final static JME_Vector3f UNIT_Z = new JME_Vector3f(0, 0, 1);
+    public final static JME_Vector3f UNIT_XYZ = new JME_Vector3f(1, 1, 1);
+    public final static JME_Vector3f POSITIVE_INFINITY = new JME_Vector3f(
             Float.POSITIVE_INFINITY,
             Float.POSITIVE_INFINITY,
             Float.POSITIVE_INFINITY);
-    public final static Vector3f NEGATIVE_INFINITY = new Vector3f(
+    public final static JME_Vector3f NEGATIVE_INFINITY = new JME_Vector3f(
             Float.NEGATIVE_INFINITY,
             Float.NEGATIVE_INFINITY,
             Float.NEGATIVE_INFINITY);
@@ -90,7 +90,7 @@ public final class Vector3f {
      * values of (0,0,0).
      *
      */
-    public Vector3f() {
+    public JME_Vector3f() {
         x = y = z = 0;
     }
 
@@ -105,7 +105,7 @@ public final class Vector3f {
      * @param z
      *            the z value of the vector.
      */
-    public Vector3f(float x, float y, float z) {
+    public JME_Vector3f(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -116,7 +116,7 @@ public final class Vector3f {
      * of the provided vector
      * @param copy The Vector3f to copy
      */
-    public Vector3f(Vector3f copy) {
+    public JME_Vector3f(JME_Vector3f copy) {
         this.set(copy);
     }
 
@@ -132,7 +132,7 @@ public final class Vector3f {
      *            the z value of the vector.
      * @return this vector
      */
-    public Vector3f set(float x, float y, float z) {
+    public JME_Vector3f set(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -147,7 +147,7 @@ public final class Vector3f {
      *            the vector to copy.
      * @return this vector
      */
-    public Vector3f set(Vector3f vect) {
+    public JME_Vector3f set(JME_Vector3f vect) {
         this.x = vect.x;
         this.y = vect.y;
         this.z = vect.z;
@@ -164,12 +164,12 @@ public final class Vector3f {
      *            the vector to add to this.
      * @return the resultant vector.
      */
-    public Vector3f add(Vector3f vec) {
+    public JME_Vector3f add(JME_Vector3f vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
             return null;
         }
-        return new Vector3f(x + vec.x, y + vec.y, z + vec.z);
+        return new JME_Vector3f(x + vec.x, y + vec.y, z + vec.z);
     }
 
     /**
@@ -183,7 +183,7 @@ public final class Vector3f {
      *            the vector to store the result in
      * @return result returns the supplied result vector.
      */
-    public Vector3f add(Vector3f vec, Vector3f result) {
+    public JME_Vector3f add(JME_Vector3f vec, JME_Vector3f result) {
         result.x = x + vec.x;
         result.y = y + vec.y;
         result.z = z + vec.z;
@@ -199,7 +199,7 @@ public final class Vector3f {
      *            the vector to add to this vector.
      * @return this
      */
-    public Vector3f addLocal(Vector3f vec) {
+    public JME_Vector3f addLocal(JME_Vector3f vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
             return null;
@@ -223,8 +223,8 @@ public final class Vector3f {
      *            the z value to add.
      * @return the result vector.
      */
-    public Vector3f add(float addX, float addY, float addZ) {
-        return new Vector3f(x + addX, y + addY, z + addZ);
+    public JME_Vector3f add(float addX, float addY, float addZ) {
+        return new JME_Vector3f(x + addX, y + addY, z + addZ);
     }
 
     /**
@@ -240,7 +240,7 @@ public final class Vector3f {
      *            value to add to z
      * @return this
      */
-    public Vector3f addLocal(float addX, float addY, float addZ) {
+    public JME_Vector3f addLocal(float addX, float addY, float addZ) {
         x += addX;
         y += addY;
         z += addZ;
@@ -257,7 +257,7 @@ public final class Vector3f {
      * @param add
      *            the value to add
      */
-    public Vector3f scaleAdd(float scalar, Vector3f add) {
+    public JME_Vector3f scaleAdd(float scalar, JME_Vector3f add) {
         x = x * scalar + add.x;
         y = y * scalar + add.y;
         z = z * scalar + add.z;
@@ -276,7 +276,7 @@ public final class Vector3f {
      * @param add
      *            the value to add
      */
-    public Vector3f scaleAdd(float scalar, Vector3f mult, Vector3f add) {
+    public JME_Vector3f scaleAdd(float scalar, JME_Vector3f mult, JME_Vector3f add) {
         this.x = mult.x * scalar + add.x;
         this.y = mult.y * scalar + add.y;
         this.z = mult.z * scalar + add.z;
@@ -292,7 +292,7 @@ public final class Vector3f {
      *            the vector to dot with this vector.
      * @return the resultant dot product of this vector and a given vector.
      */
-    public float dot(Vector3f vec) {
+    public float dot(JME_Vector3f vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, 0 returned.");
             return 0;
@@ -308,7 +308,7 @@ public final class Vector3f {
      *            the vector to take the cross product of with this.
      * @return the cross product vector.
      */
-    public Vector3f cross(Vector3f v) {
+    public JME_Vector3f cross(JME_Vector3f v) {
         return cross(v, null);
     }
 
@@ -322,7 +322,7 @@ public final class Vector3f {
      *            the vector to store the cross product result.
      * @return result, after recieving the cross product vector.
      */
-    public Vector3f cross(Vector3f v,Vector3f result) {
+    public JME_Vector3f cross(JME_Vector3f v,JME_Vector3f result) {
         return cross(v.x, v.y, v.z, result);
     }
 
@@ -340,8 +340,8 @@ public final class Vector3f {
      *            the vector to store the cross product result.
      * @return result, after recieving the cross product vector.
      */
-    public Vector3f cross(float otherX, float otherY, float otherZ, Vector3f result) {
-        if (result == null) result = new Vector3f();
+    public JME_Vector3f cross(float otherX, float otherY, float otherZ, JME_Vector3f result) {
+        if (result == null) result = new JME_Vector3f();
         float resX = ((y * otherZ) - (z * otherY)); 
         float resY = ((z * otherX) - (x * otherZ));
         float resZ = ((x * otherY) - (y * otherX));
@@ -357,7 +357,7 @@ public final class Vector3f {
      *            the vector to take the cross product of with this.
      * @return this.
      */
-    public Vector3f crossLocal(Vector3f v) {
+    public JME_Vector3f crossLocal(JME_Vector3f v) {
         return crossLocal(v.x, v.y, v.z);
     }
 
@@ -373,7 +373,7 @@ public final class Vector3f {
      *            z component of the vector to take the cross product of with this.
      * @return this.
      */
-    public Vector3f crossLocal(float otherX, float otherY, float otherZ) {
+    public JME_Vector3f crossLocal(float otherX, float otherY, float otherZ) {
         float tempx = ( y * otherZ ) - ( z * otherY );
         float tempy = ( z * otherX ) - ( x * otherZ );
         z = (x * otherY) - (y * otherX);
@@ -445,7 +445,7 @@ public final class Vector3f {
      * @param v the second vector to determine the distance squared.
      * @return the distance squared between the two vectors.
      */
-    public float distanceSquared(Vector3f v) {
+    public float distanceSquared(JME_Vector3f v) {
         double dx = x - v.x;
         double dy = y - v.y;
         double dz = z - v.z;
@@ -472,8 +472,8 @@ public final class Vector3f {
      *            the value to multiply this vector by.
      * @return the new vector.
      */
-    public Vector3f mult(float scalar) {
-        return new Vector3f(x * scalar, y * scalar, z * scalar);
+    public JME_Vector3f mult(float scalar) {
+        return new JME_Vector3f(x * scalar, y * scalar, z * scalar);
     }
 
     /**
@@ -485,9 +485,9 @@ public final class Vector3f {
      * @param product the product to store the result in.
      * @return product
      */
-    public Vector3f mult(float scalar, Vector3f product) {
+    public JME_Vector3f mult(float scalar, JME_Vector3f product) {
         if (null == product) {
-            product = new Vector3f();
+            product = new JME_Vector3f();
         }
 
         product.x = x * scalar;
@@ -504,7 +504,7 @@ public final class Vector3f {
      *            the value to multiply this vector by.
      * @return this
      */
-    public Vector3f multLocal(float scalar) {
+    public JME_Vector3f multLocal(float scalar) {
         x *= scalar;
         y *= scalar;
         z *= scalar;
@@ -520,7 +520,7 @@ public final class Vector3f {
      *            the vector to mult to this vector.
      * @return this
      */
-    public Vector3f multLocal(Vector3f vec) {
+    public JME_Vector3f multLocal(JME_Vector3f vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
             return null;
@@ -541,7 +541,7 @@ public final class Vector3f {
      * @param z
      * @return this
      */
-    public Vector3f multLocal(float x, float y, float z) {
+    public JME_Vector3f multLocal(float x, float y, float z) {
         this.x *= x;
         this.y *= y;
         this.z *= z;
@@ -557,7 +557,7 @@ public final class Vector3f {
      *            the vector to mult to this vector.
      * @return this
      */
-    public Vector3f mult(Vector3f vec) {
+    public JME_Vector3f mult(JME_Vector3f vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
             return null;
@@ -575,12 +575,12 @@ public final class Vector3f {
      * @param store result vector (null to create a new vector)
      * @return this
      */
-    public Vector3f mult(Vector3f vec, Vector3f store) {
+    public JME_Vector3f mult(JME_Vector3f vec, JME_Vector3f store) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
             return null;
         }
-        if (store == null) store = new Vector3f();
+        if (store == null) store = new JME_Vector3f();
         return store.set(x * vec.x, y * vec.y, z * vec.z);
     }
 
@@ -593,9 +593,9 @@ public final class Vector3f {
      *            the value to divide this vectors attributes by.
      * @return the result <code>Vector</code>.
      */
-    public Vector3f divide(float scalar) {
+    public JME_Vector3f divide(float scalar) {
         scalar = 1f/scalar;
-        return new Vector3f(x * scalar, y * scalar, z * scalar);
+        return new JME_Vector3f(x * scalar, y * scalar, z * scalar);
     }
 
     /**
@@ -607,7 +607,7 @@ public final class Vector3f {
      *            the value to divides this vector by.
      * @return this
      */
-    public Vector3f divideLocal(float scalar) {
+    public JME_Vector3f divideLocal(float scalar) {
         scalar = 1f/scalar;
         x *= scalar;
         y *= scalar;
@@ -624,8 +624,8 @@ public final class Vector3f {
      *            the value to divide this vectors attributes by.
      * @return the result <code>Vector</code>.
      */
-    public Vector3f divide(Vector3f scalar) {
-        return new Vector3f(x / scalar.x, y / scalar.y, z / scalar.z);
+    public JME_Vector3f divide(JME_Vector3f scalar) {
+        return new JME_Vector3f(x / scalar.x, y / scalar.y, z / scalar.z);
     }
 
     /**
@@ -637,7 +637,7 @@ public final class Vector3f {
      *            the value to divides this vector by.
      * @return this
      */
-    public Vector3f divideLocal(Vector3f scalar) {
+    public JME_Vector3f divideLocal(JME_Vector3f scalar) {
         x /= scalar.x;
         y /= scalar.y;
         z /= scalar.z;
@@ -651,8 +651,8 @@ public final class Vector3f {
      *
      * @return the negated vector.
      */
-    public Vector3f negate() {
-        return new Vector3f(-x, -y, -z);
+    public JME_Vector3f negate() {
+        return new JME_Vector3f(-x, -y, -z);
     }
 
     /**
@@ -661,7 +661,7 @@ public final class Vector3f {
      *
      * @return this.
      */
-    public Vector3f negateLocal() {
+    public JME_Vector3f negateLocal() {
         x = -x;
         y = -y;
         z = -z;
@@ -678,8 +678,8 @@ public final class Vector3f {
      *            the vector to subtract from this vector.
      * @return the result vector.
      */
-    public Vector3f subtract(Vector3f vec) {
-        return new Vector3f(x - vec.x, y - vec.y, z - vec.z);
+    public JME_Vector3f subtract(JME_Vector3f vec) {
+        return new JME_Vector3f(x - vec.x, y - vec.y, z - vec.z);
     }
 
     /**
@@ -691,7 +691,7 @@ public final class Vector3f {
      *            the vector to subtract
      * @return this
      */
-    public Vector3f subtractLocal(Vector3f vec) {
+    public JME_Vector3f subtractLocal(JME_Vector3f vec) {
         if (null == vec) {
             logger.warning("Provided vector is null, null returned.");
             return null;
@@ -712,9 +712,9 @@ public final class Vector3f {
      *            the vector to store the result in
      * @return result
      */
-    public Vector3f subtract(Vector3f vec, Vector3f result) {
+    public JME_Vector3f subtract(JME_Vector3f vec, JME_Vector3f result) {
         if(result == null) {
-            result = new Vector3f();
+            result = new JME_Vector3f();
         }
         result.x = x - vec.x;
         result.y = y - vec.y;
@@ -735,8 +735,8 @@ public final class Vector3f {
      *            the z value to subtract.
      * @return the result vector.
      */
-    public Vector3f subtract(float subtractX, float subtractY, float subtractZ) {
-        return new Vector3f(x - subtractX, y - subtractY, z - subtractZ);
+    public JME_Vector3f subtract(float subtractX, float subtractY, float subtractZ) {
+        return new JME_Vector3f(x - subtractX, y - subtractY, z - subtractZ);
     }
 
     /**
@@ -752,7 +752,7 @@ public final class Vector3f {
      *            the z value to subtract.
      * @return this
      */
-    public Vector3f subtractLocal(float subtractX, float subtractY, float subtractZ) {
+    public JME_Vector3f subtractLocal(float subtractX, float subtractY, float subtractZ) {
         x -= subtractX;
         y -= subtractY;
         z -= subtractZ;
@@ -805,7 +805,7 @@ public final class Vector3f {
      * in this vector.
      * @param other 
      */
-    public Vector3f maxLocal(Vector3f other){
+    public JME_Vector3f maxLocal(JME_Vector3f other){
         x = other.x > x ? other.x : x;
         y = other.y > y ? other.y : y;
         z = other.z > z ? other.z : z;
@@ -818,7 +818,7 @@ public final class Vector3f {
      * in this vector.
      * @param other
      */
-    public Vector3f minLocal(Vector3f other){
+    public JME_Vector3f minLocal(JME_Vector3f other){
         x = other.x < x ? other.x : x;
         y = other.y < y ? other.y : y;
         z = other.z < z ? other.z : z;
@@ -828,7 +828,7 @@ public final class Vector3f {
     /**
      * <code>zero</code> resets this vector's data to zero internally.
      */
-    public Vector3f zero() {
+    public JME_Vector3f zero() {
         x = y = z = 0;
         return this;
     }
@@ -853,7 +853,7 @@ public final class Vector3f {
      * @param changeAmnt An amount between 0.0 - 1.0 representing a precentage
      *  change from this towards finalVec
      */
-    public Vector3f interpolateLocal(Vector3f finalVec, float changeAmnt) {
+    public JME_Vector3f interpolateLocal(JME_Vector3f finalVec, float changeAmnt) {
         this.x=(1-changeAmnt)*this.x + changeAmnt*finalVec.x;
         this.y=(1-changeAmnt)*this.y + changeAmnt*finalVec.y;
         this.z=(1-changeAmnt)*this.z + changeAmnt*finalVec.z;
@@ -868,7 +868,7 @@ public final class Vector3f {
      * @param changeAmnt An amount between 0.0 - 1.0 representing a precentage
      *  change from beginVec towards finalVec
      */
-    public Vector3f interpolateLocal(Vector3f beginVec,Vector3f finalVec, float changeAmnt) {
+    public JME_Vector3f interpolateLocal(JME_Vector3f beginVec,JME_Vector3f finalVec, float changeAmnt) {
         this.x=(1-changeAmnt)*beginVec.x + changeAmnt*finalVec.x;
         this.y=(1-changeAmnt)*beginVec.y + changeAmnt*finalVec.y;
         this.z=(1-changeAmnt)*beginVec.z + changeAmnt*finalVec.z;
@@ -881,7 +881,7 @@ public final class Vector3f {
      * @param vector the vector to check
      * @return true or false as stated above.
      */
-    public static boolean isValidVector(Vector3f vector) {
+    public static boolean isValidVector(JME_Vector3f vector) {
       if (vector == null) return false;
       if (Float.isNaN(vector.x) ||
           Float.isNaN(vector.y) ||
@@ -923,9 +923,9 @@ public final class Vector3f {
 //    }
 
     @Override
-    public Vector3f clone() {
+    public JME_Vector3f clone() {
         try {
-            return (Vector3f) super.clone();
+            return (JME_Vector3f) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new AssertionError(); // can not happen
         }
@@ -958,11 +958,11 @@ public final class Vector3f {
      * @return true if they are equal
      */
     public boolean equals(Object o) {
-        if (!(o instanceof Vector3f)) { return false; }
+        if (!(o instanceof JME_Vector3f)) { return false; }
 
         if (this == o) { return true; }
 
-        Vector3f comp = (Vector3f) o;
+        JME_Vector3f comp = (JME_Vector3f) o;
         if (Float.compare(x,comp.x) != 0) return false;
         if (Float.compare(y,comp.y) != 0) return false;
         if (Float.compare(z,comp.z) != 0) return false;
@@ -999,7 +999,7 @@ public final class Vector3f {
         return x;
     }
 
-    public Vector3f setX(float x) {
+    public JME_Vector3f setX(float x) {
         this.x = x;
         return this;
     }
@@ -1008,7 +1008,7 @@ public final class Vector3f {
         return y;
     }
 
-    public Vector3f setY(float y) {
+    public JME_Vector3f setY(float y) {
         this.y = y;
         return this;
     }
@@ -1017,7 +1017,7 @@ public final class Vector3f {
         return z;
     }
 
-    public Vector3f setZ(float z) {
+    public JME_Vector3f setZ(float z) {
         this.z = z;
         return this;
     }
