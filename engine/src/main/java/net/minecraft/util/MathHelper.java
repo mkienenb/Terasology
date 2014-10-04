@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.subsystem;
+package net.minecraft.util;
 
-import org.terasology.logic.players.LocalPlayerSystem;
-import org.terasology.rendering.techne.TechneRenderer;
-import org.terasology.rendering.world.WorldRenderer;
-import org.terasology.world.WorldProvider;
-import org.terasology.world.chunks.ChunkProvider;
+public class MathHelper {
 
-public interface RenderingSubsystemFactory {
-
-    WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem);
-    TechneRenderer createTechneRenderer();
+    public static float cos(float a) {
+        return (float)Math.cos(a);
+    }
 
 }

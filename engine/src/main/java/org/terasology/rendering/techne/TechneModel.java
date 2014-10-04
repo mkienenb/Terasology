@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.subsystem;
+package org.terasology.rendering.techne;
 
-import org.terasology.logic.players.LocalPlayerSystem;
-import org.terasology.rendering.techne.TechneRenderer;
-import org.terasology.rendering.world.WorldRenderer;
-import org.terasology.world.WorldProvider;
-import org.terasology.world.chunks.ChunkProvider;
+public class TechneModel {
+    // For now, allow the following to be stored and directly accessed by modules,
+    // but they should be replaced by accessors as time goes by.
 
-public interface RenderingSubsystemFactory {
-
-    WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem);
-    TechneRenderer createTechneRenderer();
-
+    protected int textureWidth;
+    protected int textureHeight;
 }

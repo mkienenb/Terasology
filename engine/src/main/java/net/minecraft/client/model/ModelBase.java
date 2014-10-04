@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2014 MovingBlocks
  *
@@ -13,17 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.subsystem;
+package net.minecraft.client.model;
 
-import org.terasology.logic.players.LocalPlayerSystem;
-import org.terasology.rendering.techne.TechneRenderer;
-import org.terasology.rendering.world.WorldRenderer;
-import org.terasology.world.WorldProvider;
-import org.terasology.world.chunks.ChunkProvider;
+import org.terasology.rendering.techne.TechneModel;
 
-public interface RenderingSubsystemFactory {
+import net.minecraft.entity.Entity;
 
-    WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem);
-    TechneRenderer createTechneRenderer();
+public class ModelBase extends TechneModel {
+
+    public void render(Entity entity, float originX, float originY, float originZ, float f3, float f4, float f5) {
+        
+    }
+
+    public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity par7Entity) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

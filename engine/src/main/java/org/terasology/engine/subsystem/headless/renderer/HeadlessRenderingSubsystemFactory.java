@@ -17,6 +17,7 @@ package org.terasology.engine.subsystem.headless.renderer;
 
 import org.terasology.engine.subsystem.RenderingSubsystemFactory;
 import org.terasology.logic.players.LocalPlayerSystem;
+import org.terasology.rendering.techne.TechneRenderer;
 import org.terasology.rendering.world.WorldRenderer;
 import org.terasology.world.WorldProvider;
 import org.terasology.world.chunks.ChunkProvider;
@@ -26,5 +27,10 @@ public class HeadlessRenderingSubsystemFactory implements RenderingSubsystemFact
     @Override
     public WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem) {
         return new HeadlessWorldRenderer(worldProvider, chunkProvider, localPlayerSystem);
+    }
+
+    @Override
+    public TechneRenderer createTechneRenderer() {
+        return new HeadlessTechneRenderer();
     }
 }

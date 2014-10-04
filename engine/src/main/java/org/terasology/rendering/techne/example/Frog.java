@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.subsystem;
+package org.terasology.rendering.techne.example;
 
-import org.terasology.logic.players.LocalPlayerSystem;
-import org.terasology.rendering.techne.TechneRenderer;
-import org.terasology.rendering.world.WorldRenderer;
-import org.terasology.world.WorldProvider;
-import org.terasology.world.chunks.ChunkProvider;
+public class Frog {
 
-public interface RenderingSubsystemFactory {
+    public float motionY;
 
-    WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem);
-    TechneRenderer createTechneRenderer();
+    public int getSinging() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
 }

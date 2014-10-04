@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.subsystem;
+package net.minecraft.client.model;
 
-import org.terasology.logic.players.LocalPlayerSystem;
-import org.terasology.rendering.techne.TechneRenderer;
-import org.terasology.rendering.world.WorldRenderer;
-import org.terasology.world.WorldProvider;
-import org.terasology.world.chunks.ChunkProvider;
+import org.terasology.rendering.techne.TechneBox;
+import org.terasology.rendering.techne.TechneModel;
 
-public interface RenderingSubsystemFactory {
+public class ModelRenderer extends TechneBox {
 
-    WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem);
-    TechneRenderer createTechneRenderer();
+    public ModelRenderer(TechneModel techneModel, int textureOffSetX, int textureOffsetY) {
+        super();
+
+        super.setTechneModel(techneModel);
+        super.setTextureOffsetX(textureOffSetX);
+        super.setTextureOffsetY(textureOffsetY);
+    }
+
+    public void render(float scale) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

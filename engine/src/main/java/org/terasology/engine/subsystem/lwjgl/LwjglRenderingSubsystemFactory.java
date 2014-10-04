@@ -16,7 +16,9 @@
 package org.terasology.engine.subsystem.lwjgl;
 
 import org.terasology.engine.subsystem.RenderingSubsystemFactory;
+import org.terasology.engine.subsystem.lwjgl.renderer.LwjglTechneRenderer;
 import org.terasology.logic.players.LocalPlayerSystem;
+import org.terasology.rendering.techne.TechneRenderer;
 import org.terasology.rendering.world.WorldRenderer;
 import org.terasology.rendering.world.WorldRendererLwjgl;
 import org.terasology.world.WorldProvider;
@@ -33,5 +35,10 @@ public class LwjglRenderingSubsystemFactory implements RenderingSubsystemFactory
     @Override
     public WorldRenderer createWorldRenderer(WorldProvider worldProvider, ChunkProvider chunkProvider, LocalPlayerSystem localPlayerSystem) {
         return new WorldRendererLwjgl(worldProvider, chunkProvider, localPlayerSystem, bufferPool);
+    }
+
+    @Override
+    public TechneRenderer createTechneRenderer() {
+        return new LwjglTechneRenderer();
     }
 }
