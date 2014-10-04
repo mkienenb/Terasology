@@ -202,6 +202,10 @@ public class TechneXmlLoader {
             float positionX = Float.parseFloat(positionArray[0]);
             float positionY = Float.parseFloat(positionArray[1]);
             float positionZ = Float.parseFloat(positionArray[2]);
+            
+//            // reverse y
+//            positionY = positionY * -1;  // + 24
+            
             Vector3f positionVector = new Vector3f(positionX, positionY, positionZ);
             
             float sizeX = Float.parseFloat(sizeArray[0]);
@@ -218,17 +222,30 @@ public class TechneXmlLoader {
             float offsetX = Float.parseFloat(offsetArray[0]);
             float offsetY = Float.parseFloat(offsetArray[1]);
             float offsetZ = Float.parseFloat(offsetArray[2]);
+
+//            // reverse y
+//            offsetY = offsetY * -1;
+            
             Vector3f offsetVector = new Vector3f(offsetX, offsetY, offsetZ);
             
             int vertexCountBefore = vertices.size();
             
+//            Vector3f boxOrigin = new Vector3f(
+//                    positionVector.x + offsetVector.x,
+//                    positionVector.y + offsetVector.y,
+//                    positionVector.z + offsetVector.z);
+            Box box = new Box(offsetVector, sizeVector);
+
             // divide by 2 for extent
-            Box box = new Box(positionVector, sizeX * 0.5f, sizeY * 0.5f, sizeZ * 0.5f);
+//            Box box = new Box(offsetVector, sizeX * 0.5f, sizeY * 0.5f, sizeZ * 0.5f);
             // TODO: scale
             // TODO: rotate
             // TODO: mirror
+
+            int textureOffsetX = Integer.parseInt(textureOffsetArray[0]);
+            int textureOffsetY = Integer.parseInt(textureOffsetArray[1]);
             
-            box.addMeshData(indices, vertices, normals, rotationVector, offsetVector);
+            box.addMeshData(indices, vertices, normals, rotationVector, positionVector, textureOffsetX, textureOffsetY);
             
             int vertexCountAfter = vertices.size();
             int newVertexTriplets = vertexCountAfter - vertexCountBefore;

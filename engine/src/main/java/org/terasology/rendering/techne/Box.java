@@ -32,15 +32,11 @@
 // $Id: Box.java 4131 2009-03-19 20:15:28Z blaine.dev $
 package org.terasology.rendering.techne;
 
-import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
-
 import gnu.trove.list.TFloatList;
 import gnu.trove.list.TIntList;
+
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
 
 /**
  * Using box generator constants from 
@@ -141,6 +137,18 @@ public class Box extends AbstractBox {
         super();
     }
 
+    public Box(Vector3f origin, Vector3f sizeVector) {
+        JME_Vector3f min = new JME_Vector3f(
+                Math.min(origin.x, origin.x + sizeVector.x), 
+                Math.min(origin.y, origin.y + sizeVector.y), 
+                Math.min(origin.z, origin.z + sizeVector.z));
+        JME_Vector3f max = new JME_Vector3f(
+                Math.max(origin.x, origin.x + sizeVector.x), 
+                Math.max(origin.y, origin.y + sizeVector.y), 
+                Math.max(origin.z, origin.z + sizeVector.z));
+        updateGeometry(min, max);
+    }
+
     /**
      * Creates a clone of this box.
      * <p>
@@ -204,33 +212,17 @@ public class Box extends AbstractBox {
         normals.add(GEOMETRY_NORMALS_DATA);
     }
 
-    /**
-     *  Rotates a vector around an axis
-     *
-     *@param  vector  vector to be rotated around axis
-     *@param  axis    axis of rotation
-     *@param  angle   angle to vector rotate around
-     *@return         rotated vector
-     *author:         egonw
-     */
-    public static Vector3d rotate(Vector3d vector, Vector3d axis, double angle) {
-            Matrix3d rotate = new Matrix3d();
-            rotate.set(new AxisAngle4d(axis.x, axis.y, axis.z, angle));
-            Vector3d result = new Vector3d();
-            rotate.transform(vector, result);
-            return result;
-    }
-
     public void addMeshData(TIntList indices, TFloatList vertices, TFloatList normals, 
-                            Vector3f rotationAngleInDegrees, Vector3f rotationalOffset) {
+                            Vector3f rotationAngleInDegrees, Vector3f rotationalOffset,
+                            int textureOffsetX, int textureOffsetY) {
         
         int invertPivot = 1;
         int yAdjust = 0;
                 
-        Vector3f rotationPivotPosition = new Vector3f(
-                center.x + rotationalOffset.x,
-                center.y + rotationalOffset.y + yAdjust,
-                center.z + rotationalOffset.z);
+        Vector3f translation1 = new Vector3f(
+                center.x,
+                center.y + yAdjust,
+                center.z);
 
         int vertexesSoFar = vertices.size() / 3;
         for (int GEOMETRY_INDEX_DATA : GEOMETRY_INDICES_DATA) {
@@ -239,27 +231,83 @@ public class Box extends AbstractBox {
         JME_Vector3f[] JME_v = computeVertices();
         
         Matrix4f rotXMatrix = new Matrix4f();
-        rotXMatrix.rotX((float)(rotationAngleInDegrees.x * 180 / Math.PI));
+        rotXMatrix.rotX((float)(rotationAngleInDegrees.x * Math.PI / 180));
         Matrix4f rotYMatrix = new Matrix4f();
-        rotYMatrix.rotY((float)(rotationAngleInDegrees.y * 180 / Math.PI));
+        rotYMatrix.rotY((float)(rotationAngleInDegrees.y * Math.PI / 180));
         Matrix4f rotZMatrix = new Matrix4f();
-        rotZMatrix.rotZ((float)(rotationAngleInDegrees.z * 180 / Math.PI));
+        rotZMatrix.rotZ((float)(rotationAngleInDegrees.z * Math.PI / 180));
         
         Vector3f[] v = new Vector3f[JME_v.length];
 
         for (int i = 0; i < v.length; i++) {
+
+            // Rotating
             JME_Vector3f JME_point = JME_v[i];
+            
+            // translating both center and rotational offset
+            
+//          Vector3f point = new Vector3f(
+//              JME_point.x,
+//              JME_point.y,
+//              JME_point.z);
+
+
             Vector3f point = new Vector3f(
-                    JME_point.x - rotationPivotPosition.x * invertPivot,
-                    JME_point.y - rotationPivotPosition.y * invertPivot,
-                    JME_point.z - rotationPivotPosition.z * invertPivot);
-            Vector3f rotatedPoint = new Vector3f();
-            rotXMatrix.transform(point, rotatedPoint);
+                    JME_point.x - translation1.x * invertPivot,
+                    JME_point.y - translation1.y * invertPivot,
+                    JME_point.z - translation1.z * invertPivot);
+
+//            Vector3f point = new Vector3f(
+//                    JME_point.x - rotationalOffset.x * invertPivot,
+//                    JME_point.y - rotationalOffset.y * invertPivot,
+//                    JME_point.z - rotationalOffset.z * invertPivot);
+
+            Vector3f rotatedPoint1 = new Vector3f();
+            rotZMatrix.transform(point, rotatedPoint1);
+
+            Vector3f rotatedPoint2 = new Vector3f();
+            rotYMatrix.transform(rotatedPoint1, rotatedPoint2);
+
+            Vector3f rotatedPoint3 = new Vector3f();
+            rotXMatrix.transform(rotatedPoint2, rotatedPoint3);
+
+            // trying pre-both, post-none 
+            // trying pre-both, post-both
+            // trying pre-both, post-rotationalOffset
+            // trying pre-both, post-translation1
+
+            // pre-rotationalOffset, post-center
+            // pre-rotationalOffset, post-none
+            // pre-rotationalOffset, post-rotationalOffset
+            // pre-rotationalOffset, post-both
+            
+            // pre-none, post-both
+
+            // pre-center, post-both
+
+            Vector3f newPoint0 = new Vector3f(
+                    rotatedPoint3.x + rotationalOffset.x * invertPivot,
+                    rotatedPoint3.y + rotationalOffset.y * invertPivot,
+                    rotatedPoint3.z + rotationalOffset.z * invertPivot);
+
             Vector3f newPoint = new Vector3f(
-                    rotatedPoint.x + rotationPivotPosition.x * invertPivot,
-                    rotatedPoint.y + rotationPivotPosition.y * invertPivot,
-                    rotatedPoint.z + rotationPivotPosition.z * invertPivot);
+                    newPoint0.x + translation1.x * invertPivot,
+                    newPoint0.y + translation1.y * invertPivot,
+                    newPoint0.z + translation1.z * invertPivot);
+            
+//            Vector3f newPoint1 = new Vector3f(
+//                    newPoint.x * xExtent,
+//                    newPoint.y * yExtent,
+//                    newPoint.z * zExtent );
+            
             v[i] = newPoint;
+            
+            // Non-rotating
+//            Vector3f point = new Vector3f(
+//                    JME_point.x,
+//                    JME_point.y,
+//                    JME_point.z);
+//            v[i] = point;
         }
         
 //        // http://www.cprogramming.com/tutorial/3d/rotation.html
