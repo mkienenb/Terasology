@@ -138,24 +138,24 @@ public class PrePostCompositeNode extends AbstractNode implements PropertyChange
         addDesiredStateChange(new SetInputTextureFromFbo(textureSlot++, lastUpdatedGBuffer, DepthStencilTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneOpaqueDepth"));
         addDesiredStateChange(new SetInputTextureFromFbo(textureSlot++, lastUpdatedGBuffer, NormalsTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneOpaqueNormals"));
         addDesiredStateChange(new SetInputTextureFromFbo(textureSlot++, lastUpdatedGBuffer, LightAccumulationTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneOpaqueLightBuffer"));
-        addDesiredStateChange(new SetInputTextureFromFbo(textureSlot++, refractiveReflectiveFbo, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneReflectiveRefractive"));
-        setReflectiveRefractiveNormalsInputTexture = new SetInputTextureFromFbo(textureSlot++, refractiveReflectiveFbo, NormalsTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneReflectiveRefractiveNormals");
-        setSsaoInputTexture = new SetInputTextureFromFbo(textureSlot++, SSAO_BLURRED_FBO_URI, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSsao");
-        setEdgesInputTexture = new SetInputTextureFromFbo(textureSlot++, OUTLINE_FBO_URI, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texEdges");
-        setHazeInputTexture = new SetInputTextureFromFbo(textureSlot, FINAL_HAZE_FBO_URI, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneSkyBand");
+        // addDesiredStateChange(new SetInputTextureFromFbo(textureSlot++, refractiveReflectiveFbo, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneReflectiveRefractive"));
+        // setReflectiveRefractiveNormalsInputTexture = new SetInputTextureFromFbo(textureSlot++, refractiveReflectiveFbo, NormalsTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneReflectiveRefractiveNormals");
+        // setSsaoInputTexture = new SetInputTextureFromFbo(textureSlot++, SSAO_BLURRED_FBO_URI, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSsao");
+        // setEdgesInputTexture = new SetInputTextureFromFbo(textureSlot++, OUTLINE_FBO_URI, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texEdges");
+        // setHazeInputTexture = new SetInputTextureFromFbo(textureSlot, FINAL_HAZE_FBO_URI, ColorTexture, displayResolutionDependentFBOs, PRE_POST_MATERIAL_URN, "texSceneSkyBand");
 
-        if (localReflectionsAreEnabled) {
-            addDesiredStateChange(setReflectiveRefractiveNormalsInputTexture);
-        }
-        if (ssaoIsEnabled) {
-            addDesiredStateChange(setSsaoInputTexture);
-        }
-        if (outlineIsEnabled) {
-            addDesiredStateChange(setEdgesInputTexture);
-        }
-        if (hazeIsEnabled) {
-            addDesiredStateChange(setHazeInputTexture);
-        }
+//        if (localReflectionsAreEnabled) {
+//            addDesiredStateChange(setReflectiveRefractiveNormalsInputTexture);
+//        }
+//        if (ssaoIsEnabled) {
+//            addDesiredStateChange(setSsaoInputTexture);
+//        }
+//        if (outlineIsEnabled) {
+//            addDesiredStateChange(setEdgesInputTexture);
+//        }
+//        if (hazeIsEnabled) {
+//            addDesiredStateChange(setHazeInputTexture);
+//        }
 
         addDesiredStateChange(new SwapGBuffers(gBufferPair));
     }

@@ -103,21 +103,21 @@ public class InitialPostProcessingNode extends AbstractNode implements PropertyC
         renderingConfig.subscribe(RenderingConfig.LIGHT_SHAFTS, this);
 
         // TODO: Temporary hack for now.
-        FBOConfig one8thScaleBloomConfig = new FBOConfig(BloomBlurNode.ONE_8TH_SCALE_FBO_URI, ONE_8TH_SCALE, FBO.Type.DEFAULT);
-        FBO one8thBloomFbo = requiresFBO(one8thScaleBloomConfig, displayResolutionDependentFBOs);
+//        FBOConfig one8thScaleBloomConfig = new FBOConfig(BloomBlurNode.ONE_8TH_SCALE_FBO_URI, ONE_8TH_SCALE, FBO.Type.DEFAULT);
+//        FBO one8thBloomFbo = requiresFBO(one8thScaleBloomConfig, displayResolutionDependentFBOs);
 
         int textureSlot = 0;
         addDesiredStateChange(new SetInputTextureFromFbo(textureSlot++, displayResolutionDependentFBOs.getGBufferPair().getLastUpdatedFbo(), ColorTexture, displayResolutionDependentFBOs, INITIAL_POST_MATERIAL_URN, "texScene"));
         addDesiredStateChange(new SetInputTexture2D(textureSlot++, "engine:vignette", INITIAL_POST_MATERIAL_URN, "texVignette"));
-        setBloomInputTexture = new SetInputTextureFromFbo(textureSlot++, one8thBloomFbo, ColorTexture, displayResolutionDependentFBOs, INITIAL_POST_MATERIAL_URN, "texBloom");
-        setLightShaftsInputTexture = new SetInputTextureFromFbo(textureSlot, LIGHT_SHAFTS_FBO_URI, ColorTexture, displayResolutionDependentFBOs, INITIAL_POST_MATERIAL_URN, "texLightShafts");
+        // setBloomInputTexture = new SetInputTextureFromFbo(textureSlot++, one8thBloomFbo, ColorTexture, displayResolutionDependentFBOs, INITIAL_POST_MATERIAL_URN, "texBloom");
+        // setLightShaftsInputTexture = new SetInputTextureFromFbo(textureSlot, LIGHT_SHAFTS_FBO_URI, ColorTexture, displayResolutionDependentFBOs, INITIAL_POST_MATERIAL_URN, "texLightShafts");
 
-        if (bloomIsEnabled) {
-            addDesiredStateChange(setBloomInputTexture);
-        }
-        if (lightShaftsAreEnabled) {
-            addDesiredStateChange(setLightShaftsInputTexture);
-        }
+//        if (bloomIsEnabled) {
+//            addDesiredStateChange(setBloomInputTexture);
+//        }
+//        if (lightShaftsAreEnabled) {
+//            addDesiredStateChange(setLightShaftsInputTexture);
+//        }
     }
 
     /**
